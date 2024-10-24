@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Cart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One:wght@400&display=swap" rel="stylesheet">
+    <style>
+        /* Подключение шрифтов */
+        @font-face {
+            font-family: 'Akira Expanded';
+            src: url('{% static 'fonts/Akira Expanded Demo.otf' %}') format('opentype');
+        }
+
+        @font-face {
+            font-family: 'Agressive';
+            src: url('{% static 'fonts/AGRESSIVE.otf' %}') format('opentype');
+        }
+
+        @font-face {
+            font-family: 'Dela Gothic One';
+            src: url('{% static 'fonts/DelaGothicOne-Regular.ttf' %}') format('truetype');
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Dela Gothic One', sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        body {
+            font-family: 'Dela Gothic One', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-image: url('{% static "RASA/rectangle.png" %}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            min-height: 100%; /* Занимает всю высоту страницы */
+            display: flex;
+            flex-direction: column; /* Все элементы располагаются по вертикали */
+        }
+
+        .content {
+            flex: 1; /* Контент растягивается на оставшееся пространство */
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Верхняя панель */
+        header {
+            background-color: #F0F0F0;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #000;
+            border-top: 2px solid #000;
+        }
+
+        .logo-button {
+            text-decoration: none;
+        }
+
+        .logo {
+            font-family: 'Akira Expanded', sans-serif;
+            font-size: 2rem;
+            color: #000;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        .cart-item {
+            border: 1px solid #000;
+            padding: 15px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .remove-button {
+            background-color: red;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #252525;
+            padding: 40px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .footer-text {
+            color: #ababab;
+            font-family: 'Agressive', sans-serif;
+            font-size: 1.2rem;
+        }
+
+        .social-icons img {
+            width: 40px;
+            margin-left: 20px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Верхняя панель -->
+    <header>
+        <a href="/" class="logo-button">
+            <h1 class="logo">RASA.</h1>
+        </a>
+    </header>
+
+    <div class="content">
+        <h2>Корзина</h2>
+
+        <form method="GET" action="{% url 'cart_page' %}">
+            <input type="text" name="query" placeholder="Поиск услуги..." aria-label="Поиск услуги">
+            <button type="submit">Искать</button>
+        </form>
+
+        {% if cart_services %}
+            <div class="cart-items">
+                {% for service in cart_services %}
+                    <div class="cart-item">
+                        <p>{{ service }}</p>
+                        <form method="POST" action="{% url 'remove_from_cart' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_name" value="{{ service }}">
+                            <button type="submit" class="remove-button">Удалить</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>Корзина пуста.</p>
+        {% endif %}
+    </div>
+</div>
+<!-- Footer -->
+<footer>
+    <div class="footer-left">
+        <p class="footer-text">Российское агентство авиационной безопасности</p>
+    </div>
+    <div class="social-icons">
+        <a href="#"><img src="{% static 'RASA/vklogo.svg' %}" alt="VKontakte"></a>
+        <a href="#"><img src="{% static 'RASA/tglogo.svg' %}" alt="Telegram"></a>
+        <a href="#"><img src="{% static 'RASA/github.svg' %}" alt="GitHub"></a>
+    </div>
+</footer>
+</div>
+</body>
+</html>
