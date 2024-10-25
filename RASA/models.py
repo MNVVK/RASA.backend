@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class Service(models.Model):
+class Engine(models.Model):
     title = models.CharField(max_length=400)
     description = models.TextField()
     image_url = models.CharField(max_length=400)

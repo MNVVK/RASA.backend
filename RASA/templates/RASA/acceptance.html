@@ -3,7 +3,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Cart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceptance</title>
     <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One:wght@400&display=swap" rel="stylesheet">
     <style>
         /* Подключение шрифтов */
@@ -56,6 +57,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            flex-direction: column;
         }
 
         /* Верхняя панель */
@@ -81,11 +83,89 @@
             text-align: center;
         }
 
-        .cart-item {
-            border: 1px solid #000;
+        .engine-image {
+            width: 6%;
+            height: auto;
+            margin-top: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Секция поиска */
+        .search-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 20px;
+            font-size: 18px;
+            border: 4px solid #000;
+            border-right: none;
+            border-radius: 30px 0 0 30px;
+            background-color: transparent;
+            font-family: 'Dela Gothic One', sans-serif;
+            outline: none;
+            color: #000;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: #000;
+            opacity: 0.7;
+        }
+
+        .search-input:focus {
+            border-color: #000;
+        }
+
+        .search-button {
+            background-color: transparent;
+            border: 4px solid #000;
+            border-left: none;
+            padding: 16px 20px;
+            border-radius: 0 30px 30px 0;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-button img {
+            width: 24px;
+            height: 24.4px;
+            filter: invert(0%);
+        }
+
+        .search-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Стили для области карточек */
+        .acceptance-items {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            min-height: 200px; /* Минимальная высота контейнера */
+            background-image: url('{% static "RASA/rectangle.png" %}');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 20px;
+            box-sizing: border-box; /* Учитываем padding */
+        }
+
+        .acceptance-item {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #000;
             padding: 15px;
-            margin-bottom: 10px;
             text-align: center;
+            background-color: transparent;
         }
 
         .remove-button {
@@ -128,22 +208,26 @@
         </a>
     </header>
 
+    <!-- Секция поиска -->
+    <form method="GET" action="{% url 'remove_from_acceptance' %}" class="search-form">
+        <input type="text" name="q" value="{{ query }}" placeholder="Поиск услуг..." class="search-input">
+        <button type="submit" class="search-button">
+            <img src="{% static 'RASA/search.png' %}" alt="Search">
+        </button>
+    </form>
+
     <div class="content">
         <h2>Корзина</h2>
 
-        <form method="GET" action="{% url 'cart_page' %}">
-            <input type="text" name="query" placeholder="Поиск услуги..." aria-label="Поиск услуги">
-            <button type="submit">Искать</button>
-        </form>
-
-        {% if cart_services %}
-            <div class="cart-items">
-                {% for service in cart_services %}
-                    <div class="cart-item">
-                        <p>{{ service }}</p>
-                        <form method="POST" action="{% url 'remove_from_cart' %}">
+        {% if acceptance_engines %}
+            <div class="acceptance-items">
+                {% for engine in acceptance_engines %}
+                    <div class="acceptance-item">
+                        <img src="{% static engine.image_url %}" alt="{{ engine.title }}" class="engine-image">
+                        <h3>{{ engine.title }}</h3>
+                        <form method="POST" action="{% url 'remove_from_acceptance' %}">
                             {% csrf_token %}
-                            <input type="hidden" name="item_name" value="{{ service }}">
+                            <input type="hidden" name="item_id" value="{{ engine.id }}">
                             <button type="submit" class="remove-button">Удалить</button>
                         </form>
                     </div>

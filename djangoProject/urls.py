@@ -5,9 +5,9 @@ from django.urls import path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.homepage_view, name='homepage'),  # Главная страница
-    path('info/', views.info_view, name='info_page'),  # Вторая страница
-    path('cart/', views.cart_page, name='cart_page'),  # Страница корзины
-    path('add-to-cart/', views.add_to_cart, name='add_to_cart'),  # Добавление в корзину
-    path('services/', views.service_search, name='service_search'),  # Ваш путь для поиска услуг
-    path('remove-from-cart/', views.remove_from_cart, name='remove_from_cart')  # Новый путь для удаления
+    path('engines/<int:id>/', views.engines_view, name='engines_page'),  # Вторая страница
+    path('acceptance/', views.acceptance_page, name='acceptance_page'),  # Страница корзины
+    path('add-to-acceptance/<int:id>/', views.add_to_acceptance, name='add_to_acceptance'),  # Убрать для 1 лабы Добавление в корзину
+    path('engines/', views.engine_search, name='engine_search'),  # Ваш путь для поиска услуг
+    path('remove-from-acceptance/', views.remove_from_acceptance, name='remove_from_acceptance')  # Убрать дял 1 лабы Новый путь для удаления
 ]

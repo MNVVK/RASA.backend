@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, height=auto, initial-scale=1.0">
     <title>RASA</title>
 
 
@@ -112,7 +112,7 @@
         }
 
         /* Картинка самолета */
-        .hero-section {
+        .preview-section {
             background-image: url('{% static 'RASA/plane.png' %}');
             background-position: center;
             background-size: contain;
@@ -126,7 +126,7 @@
         }
 
         /* Карточки услуг */
-        .services-section {
+        .engines-section {
             border-top: 2px solid #000;
             background-image: url('{% static 'RASA/rectangle.png' %}'); /* Фон услуг */
             background-size: cover;
@@ -192,13 +192,13 @@
         }
 
         /* Корзина */
-        .cart-container {
+        .acceptance-container {
             display: flex;
             justify-content: flex-end; /* Выравнивание корзины по правому краю */
             padding: 20px;
         }
 
-        .cart-btn {
+        .acceptance-btn {
             width: 70px; /* Задаем ширину кнопки */
             height: 70px; /* Задаем высоту кнопки (квадрат) */
             background-image: url('{% static 'RASA/shopping-bag.png' %}'); /* Добавляем изображение */
@@ -216,7 +216,7 @@
         }
 
         /* Сетка карточек*/
-        .services-grid {
+        .engines-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(380px, 4fr));
             gap: 20px;
@@ -225,7 +225,7 @@
             min-height: 490px;
         }
 
-        .service-card {
+        .engines-card {
             margin: 0;
             padding: 20px;
             font-family: 'Agressive', sans-serif;
@@ -236,14 +236,14 @@
             overflow: hidden;
         }
 
-        .service-image {
-            width: 60%;
+        .engine-image {
+            width: 90%;
             height: auto;
             margin-top: 30px;
             margin-bottom: 40px;
         }
 
-        .service-title {
+        .engine-title {
             font-family: 'Agressive', sans-serif;
             font-size: 1rem;
             margin-bottom: 20px;
@@ -251,7 +251,7 @@
         }
 
         /* Конпка добавить */
-        .service-actions {
+        .engine-actions {
             color: #000;
             display: flex;
             justify-content: center;
@@ -260,7 +260,7 @@
             margin-top: auto;
         }
 
-        .service-actions button {
+        .engine-actions button {
             background-color: transparent;
             color: #000;
             padding: 10px 20px;
@@ -274,7 +274,7 @@
             text-align: center;
         }
 
-        .service-actions button:hover {
+        .engine-actions button:hover {
             background-color: rgba(0, 0, 0, 0.1);
         }
 
@@ -338,14 +338,14 @@
     </header>
 
     <!-- Plane section with image -->
-    <section class="hero-section"></section>
+    <section class="preview-section"></section>
 
     <!-- Services section -->
-    <section class="services-section">
-        <div class="services-header">
-            <h2 class="service-big-title">ПРЕДОСТАВЛЯЕМЫЕ УСЛУГИ</h2>
-            <div class="cart-container">
-                <a href="{% url 'cart_page' %}" class="cart-btn"></a>
+    <section class="engines-section">
+        <div class="engines-header">
+            <h2 class="engines-big-title">ПРЕДОСТАВЛЯЕМЫЕ УСЛУГИ</h2>
+            <div class="acceptance-container">
+                <a href="{% url 'acceptance_page' %}" class="acceptance-btn"></a>
             </div>
         </div>
         <form method="GET" action="" class="search-form">
@@ -356,18 +356,18 @@
         </form>
 
 
-        <div class="services-grid" id="servicesgrid">
-            {% if services %}
-                {% for service in services %}
-                    <div class="service-card" data-name="{{ service.name }}">
+        <div class="engines-grid">
+            {% if engines %}
+                {% for engines in engines %}
+                    <div class="engines-card" data-name="{{ engines.name }}">
                         <!-- Оборачиваем картинку в ссылку -->
-                        <a href="{% url 'info_page' %}?service={{ service.name }}">
-                            <img src="{% static service.image_url %}" alt="{{ service.description }}"
-                                 class="service-image">
+                        <a href="{% url 'engines_page' engines.id %}?engines={{ engines.name }}">
+                            <img src="{% static engines.image_url %}" alt="{{ engines.description }}"
+                                 class="engine-image">
                         </a>
-                        <h3 class="service-title">{{ service.name }}</h3>
-                        <div class="service-actions">
-                            <form action="{% url 'add_to_cart' %}" method="POST">
+                        <h3 class="engine-title">{{ engines.name }}</h3>
+                        <div class="engine-actions">
+                            <form action="{% url 'add_to_acceptance' engines.id %}" method="POST">
                                 {% csrf_token %}
                                 <input type="hidden" name="item_name" value="{{ service.name }}">
                                 <button type="submit">Добавить</button>
