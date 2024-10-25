@@ -145,12 +145,9 @@
         .engine-title {
             font-size: 2.5rem;
             margin-bottom: 20px;
-            text-align: left;
-        }
-
-        .engine-title-en {
-            flex-grow: 1;
-            text-align: right; /* Выравнивание текста справа по левой стороне */
+            text-align: center;
+            padding-left: 30px;
+            padding-right: 30px;
         }
 
         .engine-title-section {
@@ -166,26 +163,24 @@
         .engine-title, .engine-title-en {
             font-size: 2rem;
             margin: 0;
-            padding: 0 10px; /* Отступ для текста от эллипса */
             white-space: nowrap;
         }
 
         /* Пропорциональное распределение текста */
         .engine-title-section h2 {
-            flex: 1; /* Текст растягивается по доступной ширине */
+            flex: 0; /* Текст растягивается по доступной ширине */
             text-align: center;
             margin: 0;
         }
 
         /* Стили для эллипса в названии */
         .ellipse-title {
-            display: inline-block;
+            display: flex;
             width: 18px;
             height: 18px;
             background-color: #000;
             border-radius: 50%;
             flex-shrink: 0;
-            margin: 0 30px; /* Отступы для описания */
 
         }
 
@@ -263,9 +258,9 @@
             <div class="container">
                 <!-- Название услуги с эллипсом -->
                 <div class="engine-title-section">
+                    <span class="ellipse-title"></span>
                     <h2 class="engine-title">{{ engine.title }}</h2>
                     <span class="ellipse-title"></span>
-                    <h2 class="engine-title-en">{{ engine.engine_name_en }}</h2> <!-- Название на английском -->
                 </div>
 
                 <!-- Контент с изображениями и описанием -->

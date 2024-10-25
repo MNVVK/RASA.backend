@@ -151,10 +151,6 @@
             gap: 20px;
             width: 100%;
             min-height: 200px; /* Минимальная высота контейнера */
-            background-image: url('{% static "RASA/rectangle.png" %}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
             padding: 20px;
             box-sizing: border-box; /* Учитываем padding */
         }
@@ -209,12 +205,13 @@
     </header>
 
     <!-- Секция поиска -->
-    <form method="GET" action="{% url 'remove_from_acceptance' %}" class="search-form">
+    <form method="GET" action="{% url 'acceptance_page' %}" class="search-form">
         <input type="text" name="q" value="{{ query }}" placeholder="Поиск услуг..." class="search-input">
         <button type="submit" class="search-button">
             <img src="{% static 'RASA/search.png' %}" alt="Search">
         </button>
     </form>
+
 
     <div class="content">
         <h2>Корзина</h2>

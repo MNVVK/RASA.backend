@@ -10,15 +10,12 @@ def homepage_view(request):
 
     # Определяем список карточек для фильтрации
     engines = [
-        {'id': 1, 'name': 'Определение состава партии', 'description': 'Описание услуги',
-         'image_url': 'RASA/fj44.png'},
-        {'id': 2, 'name': 'Подготовка документации', 'description': 'Описание услуги', 'image_url': 'RASA/pngg.png'},
-        {'id': 3, 'name': 'Проверка технических характеристик', 'description': 'Описание услуги',
-         'image_url': 'RASA/boeng 737.png'},
-        {'id': 4, 'name': 'Контроль качества', 'description': 'Описание услуги', 'image_url': 'RASA/cfm leap.png'},
-        {'id': 5, 'name': 'Оформление результатов', 'description': 'Описание услуги', 'image_url': 'RASA/121212.png'},
-        {'id': 6, 'name': 'Передача информации заказчику', 'description': 'Описание услуги',
-         'image_url': 'RASA/pngegg.png'}
+        {'id': 1, 'name': 'RASA. FJ-44', 'description': 'Описание услуги', 'image_url': 'RASA/fj-44.png'},
+        {'id': 2, 'name': 'RASA. CFM-56', 'description': 'Описание услуги', 'image_url': 'RASA/cfm-56.png'},
+        {'id': 3, 'name': 'RASA. BNG-737', 'description': 'Описание услуги', 'image_url': 'RASA/bng-737.png'},
+        {'id': 4, 'name': 'RASA. LEAP', 'description': 'Описание услуги', 'image_url': 'RASA/leap.png'},
+        {'id': 5, 'name': 'RASA. AP-1', 'description': 'Описание услуги', 'image_url': 'RASA/ap-1.png'},
+        {'id': 6, 'name': 'RASA. CFM-57', 'description': 'Описание услуги', 'image_url': 'RASA/cfm-57.png'}
     ]
     # Фильтруем карточки по запросу
     if query:
@@ -33,63 +30,63 @@ def homepage_view(request):
 engines_data = [
     {
         'id': 1,
-        'title': 'Определение состава партии',
-        'description': 'Проводится согласование объемов партии, закладываются характеристики и материалы',
+        'title': 'RASA. FJ-44',
+        'description': 'Надежный, крепкий двигатель конструированный для простоты и легкость обслуживания. Уникальный дизайн двигателя позволяет разборке горячего раздела/разборке и удалению вентилятора/замене пока установленный на воздушные судн. Множественные порты borescope делают осмотры более легким, и LRUs легко доступно.',
         'description_en': 'The volume of the batch is being coordinated, characteristics and materials are being laid down',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
         'engine_name_en': 'Batch Composition Definition',
-        'image_url': 'fj44.png'
+        'image_url': 'fj-44.png'
     },
     {
         'id': 2,
-        'title': 'Подготовка документации',
-        'description': 'Подготовка всей необходимой документации и паспортов партии, разработка чертежей',
+        'title': 'RASA. CFM-56',
+        'description': 'Предназначен для однопроходных коммерческих лайнеров, а также для различных военных самолетов.',
         'description_en': 'Preparation of all necessary documentation and batch passports, development of drawings',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
         'engine_name_en': 'Preparation of docs',
-        'image_url': 'pngg.png'
+        'image_url': 'cfm-56.png'
     },
     {
         'id': 3,
-        'title': 'Проверка технических характеристик',
+        'title': 'RASA. BNG-737',
         'description': 'Проведение тестов на установление технических характеристик',
         'description_en': 'Conducting tests to establish technical characteristics',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
         'engine_name_en': 'Check of the technical characteristics',
-        'image_url': 'boeng 737.png'
+        'image_url': 'bng-737.png'
     },
     {
         'id': 4,
-        'title': 'Контроль качества',
+        'title': 'RASA. LEAP',
         'description': 'Проведение необходимых испытаний на долговечность, нагрузку, брак, и настройку авиадвигателей',
         'description_en': 'Carrying out the necessary tests for durability, load, marriage, and tuning of aircraft engines',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
         'engine_name_en': 'Quality control',
-        'image_url': 'cfm leap.png'
+        'image_url': 'leap.png'
     },
     {
         'id': 5,
-        'title': 'Оформление результатов',
+        'title': 'RASA. AP-1',
         'description': 'Составление техпаспорта партии и моделей',
         'description_en': 'Drawing up the technical passport of the batch and models',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
         'engine_name_en': 'Design of the butch results',
-        'image_url': '121212.png'
+        'image_url': 'ap-1.png'
     },
     {
         'id': 6,
-        'title': 'Передача информации заказчику',
+        'title': 'RASA. CFM-57',
         'description': 'Передача полной документации и готовой партии заказчику',
         'description_en': 'Transfer of the complete documentation and the finished batch to the customer',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
         'engine_name_en': 'Deliver documents to the customer',
-        'image_url': 'pngegg.png'
+        'image_url': 'cfm-57.png'
     },
 
 ]
@@ -111,7 +108,8 @@ def acceptance_page(request):
     acceptance_engines = request.session.get('acceptance', [])
 
     # Порядок услуг как на homepage
-    all_engines = {engine['id']: engine for engine in engines_data}  # Преобразуем список в словарь для быстрого поиска по id
+    all_engines = {engine['id']: engine for engine in
+                   engines_data}  # Преобразуем список в словарь для быстрого поиска по id
 
     # Фильтруем те элементы, которые есть в корзине по их ID
     sorted_acceptance_engines = [all_engines[engine_id] for engine_id in acceptance_engines if engine_id in all_engines]
@@ -144,18 +142,17 @@ def add_to_acceptance(request, id):
     return redirect('homepage')
 
 
-
 def remove_from_acceptance(request):
     if request.method == 'POST':
-        item = request.POST.get('item_name', '')  # Получаем название услуги из формы
+        item_id = request.POST.get('item_id')  # Получаем ID услуги из формы
 
         # Проверяем, есть ли корзина в сессии
         acceptance = request.session.get('acceptance', [])
 
-        # Удаляем товар, если он есть в корзине
-        if item in acceptance:
-            acceptance.remove(item)
-            request.session['acceptance'] = acceptance
+        # Удаляем товар по ID, если он есть в корзине
+        if item_id and int(item_id) in acceptance:
+            acceptance.remove(int(item_id))
+            request.session['acceptance'] = acceptance  # Сохраняем обновленную корзину в сессии
 
     # Перенаправляем обратно на страницу корзины
     return redirect('acceptance_page')

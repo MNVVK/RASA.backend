@@ -142,7 +142,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 55px;
         }
 
         .search-input {
@@ -239,8 +239,17 @@
         .engine-image {
             width: 90%;
             height: auto;
-            margin-top: 30px;
+            margin-top: 20px;
             margin-bottom: 40px;
+        }
+
+        .engines-big-title {
+            font-family: 'Agressive', sans-serif;
+            font-size: 1.5rem; /* Можно регулировать размер */
+            color: #000; /* Цвет текста */
+            margin-bottom: 10px; /* Нижний отступ */
+            margin-left: max(60px);
+            margin-top: min(70px);
         }
 
         .engine-title {
@@ -256,6 +265,7 @@
             display: flex;
             justify-content: center;
             gap: 20px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
             margin-top: auto;
         }
@@ -343,13 +353,13 @@
     <!-- Services section -->
     <section class="engines-section">
         <div class="engines-header">
-            <h2 class="engines-big-title">ПРЕДОСТАВЛЯЕМЫЕ УСЛУГИ</h2>
+            <h2 class="engines-big-title">ДВИГАТЕЛИ В НАЛИЧИИ</h2>
             <div class="acceptance-container">
                 <a href="{% url 'acceptance_page' %}" class="acceptance-btn"></a>
             </div>
         </div>
         <form method="GET" action="" class="search-form">
-            <input type="text" name="q" value="{{ query }}" placeholder="Поиск услуг..." class="search-input">
+            <input type="text" name="q" value="{{ query }}" placeholder="Поиск двигателя..." class="search-input">
             <button type="submit" class="search-button">
                 <img src="{% static 'RASA/search.png' %}" alt="Search">
             </button>
