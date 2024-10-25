@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Description</title>
+    <title>Engines</title>
     <style>
         /* Подключение шрифтов */
         @font-face {
@@ -137,23 +137,23 @@
             margin: 20px 0;
         }
 
-        .service-data {
+        .engine-data {
             font-size: 1rem;
             font-style: italic;
         }
 
-        .service-title {
+        .engine-title {
             font-size: 2.5rem;
             margin-bottom: 20px;
             text-align: left;
         }
 
-        .service-title-en {
+        .engine-title-en {
             flex-grow: 1;
             text-align: right; /* Выравнивание текста справа по левой стороне */
         }
 
-        .service-title-section {
+        .engine-title-section {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -163,7 +163,7 @@
             margin: 20px 0;
         }
 
-        .service-title, .service-title-en {
+        .engine-title, .engine-title-en {
             font-size: 2rem;
             margin: 0;
             padding: 0 10px; /* Отступ для текста от эллипса */
@@ -171,7 +171,7 @@
         }
 
         /* Пропорциональное распределение текста */
-        .service-title-section h2 {
+        .engine-title-section h2 {
             flex: 1; /* Текст растягивается по доступной ширине */
             text-align: center;
             margin: 0;
@@ -201,13 +201,13 @@
         }
 
 
-        .cart-container {
+        .acceptance-container {
             display: flex;
             justify-content: flex-end; /* Выравнивание корзины по правому краю */
             padding: 0;
         }
 
-        .cart-btn {
+        .acceptance-btn {
             width: 70px; /* Задаем ширину кнопки */
             height: 70px; /* Задаем высоту кнопки (квадрат) */
             background-image: url('{% static 'RASA/shopping-bag.png' %}'); /* Добавляем изображение */
@@ -259,36 +259,29 @@
     </header>
     <div class="content">
         <!-- Основной контент с информацией об услуге -->
-        <section class="service-info">
+        <section class="engine-info">
             <div class="container">
                 <!-- Название услуги с эллипсом -->
-                <div class="service-title-section">
-                    <h2 class="service-title">{{ service_name }}</h2>
+                <div class="engine-title-section">
+                    <h2 class="engine-title">{{ engine.title }}</h2>
                     <span class="ellipse-title"></span>
-                    <h2 class="service-title-en">{{ service_name_en }}</h2> <!-- Название на английском -->
+                    <h2 class="engine-title-en">{{ engine.engine_name_en }}</h2> <!-- Название на английском -->
                 </div>
 
                 <!-- Контент с изображениями и описанием -->
                 <div class="content-grid">
                     <!-- Картинка -->
                     <div class="image-block">
-                        <img src="{% static service.image_url %}" alt="{{ service_name }}" class="image-block">
+                        <img src="{% static engine.image_url %}" alt="{{ engine_name }}" class="image-block">
                     </div>
                     <!-- Текстовое описание, расположенное под второй картинкой -->
                     <div class="text-block">
-                        <div class="cart-container">
-                            <form action="{% url 'add_to_cart' %}" method="POST">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_name" value="{{ service_name }}">
-                                <button type="submit" class="cart-btn"></button>
-                            </form>
-                        </div>
                         <p class="description-title">Описание <span class="ellipse-description"></span> Description</p>
                         <!-- Поля с шрифтом AGRESSIVE -->
-                        <p class="description agressive-font">{{ service.description }}</p>
-                        <p class="service-data agressive-font">{{ service.service_data }}</p>
-                        <p class="description agressive-font">{{ service.description_en }}</p>
-                        <p class="service-data agressive-font">{{ service.service_data_en }}</p>
+                        <p class="description agressive-font">{{ engine.description }}</p>
+                        <p class="engine-data agressive-font">{{ engine.engine_data }}</p>
+                        <p class="description agressive-font">{{ engine.description_en }}</p>
+                        <p class="engine-data agressive-font">{{ engine.engine_data_en }}</p>
                     </div>
                 </div>
             </div>
