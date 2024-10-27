@@ -35,9 +35,9 @@
         }
 
         .container {
-            min-height: 100%; /* Занимает всю высоту страницы */
+            min-height: 100%; 
             display: flex;
-            flex-direction: column; /* Все элементы располагаются по вертикали */
+            flex-direction: column;
             text-align: center;
         }
 
@@ -53,14 +53,7 @@
             flex-direction: column;
 
         }
-
-        .image-text-block {
-            display: flex;
-            flex-direction: column; /* Располагаем картинку и текст друг под другом */
-            align-items: center; /* Центрируем содержимое */
-            text-align: center;
-        }
-
+        
         .agressive-font {
             font-family: 'AGRESSIVE', sans-serif;
         }
@@ -112,18 +105,21 @@
             justify-content: center; /* Центрируем по горизонтали */
             align-items: center; /* Центрируем по вертикали */
             text-align: center;
-            width: 100%; /* Уменьшаем изображение до 50% от ширины контейнера */
-            max-width: 300px; /* Ограничиваем максимальный размер изображения */
+            width: 100%;
+            max-width: 300px; /* Максимальный размер изображения */
             height: auto; /* Сохраняем пропорции изображения */
             margin: 33px;
         }
 
 
-        /* Текст под второй картинкой */
+        /* Текст под картинкой */
         .text-block {
             text-align: center; /* Центрируем текст */
-            margin-top: 0; /* Добавляем отступ сверху */
+            margin-bottom: 50px;
             align-items: center;
+            max-width: 900px; /* Ограничиваем ширину */
+            margin-left: auto; /* Центрируем блок по горизонтали */
+            margin-right: auto;
         }
 
         .description {
@@ -160,7 +156,7 @@
             margin: 20px 0;
         }
 
-        .engine-title, .engine-title-en {
+        .engine-title {
             font-size: 2rem;
             margin: 0;
             white-space: nowrap;
@@ -254,7 +250,7 @@
     </header>
     <div class="content">
         <!-- Основной контент с информацией об услуге -->
-        <section class="engine-info">
+        <section>
             <div class="container">
                 <!-- Название услуги с эллипсом -->
                 <div class="engine-title-section">
@@ -269,7 +265,7 @@
                     <div class="image-block">
                         <img src="{% static engine.image_url %}" alt="{{ engine_name }}" class="image-block">
                     </div>
-                    <!-- Текстовое описание, расположенное под второй картинкой -->
+                    <!-- Текстовое описание, расположенное под картинкой -->
                     <div class="text-block">
                         <p class="description-title">Описание <span class="ellipse-description"></span> Description</p>
                         <!-- Поля с шрифтом AGRESSIVE -->
@@ -286,7 +282,7 @@
     <!-- Footer -->
     <footer>
         <div class="footer-left">
-            <p class="footer-text">Российское агентство авиационной безопасности</p>
+            <p class="footer-text">Коровин Кирилл 2024</p>
         </div>
         <div class="social-icons">
             <a href="#"><img src="{% static 'RASA/vklogo.svg' %}" alt="VKontakte"></a>

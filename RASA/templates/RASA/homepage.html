@@ -355,11 +355,11 @@
         <div class="engines-header">
             <h2 class="engines-big-title">ДВИГАТЕЛИ В НАЛИЧИИ</h2>
             <div class="acceptance-container">
-                <a href="{% url 'acceptance_page' %}" class="acceptance-btn"></a>
+                <a href="{% url 'acceptance_page' 1 %}" class="acceptance-btn"></a>
             </div>
         </div>
         <form method="GET" action="" class="search-form">
-            <input type="text" name="q" value="{{ query }}" placeholder="Поиск двигателя..." class="search-input">
+            <input type="text" name="engine_name" value="{{ query }}" placeholder="Поиск двигателя..." class="search-input">
             <button type="submit" class="search-button">
                 <img src="{% static 'RASA/search.png' %}" alt="Search">
             </button>
@@ -368,21 +368,14 @@
 
         <div class="engines-grid">
             {% if engines %}
-                {% for engines in engines %}
-                    <div class="engines-card" data-name="{{ engines.name }}">
+                {% for engine in engines %}
+                    <div class="engines-card" data-name="{{ engine.name }}">
                         <!-- Оборачиваем картинку в ссылку -->
-                        <a href="{% url 'engines_page' engines.id %}?engines={{ engines.name }}">
-                            <img src="{% static engines.image_url %}" alt="{{ engines.description }}"
+                        <a href="{% url 'engines_page' engine.id %}">
+                            <img src="{{ engine.image_url }}" alt="{{ engine.description }}"
                                  class="engine-image">
                         </a>
-                        <h3 class="engine-title">{{ engines.name }}</h3>
-                        <div class="engine-actions">
-                            <form action="{% url 'add_to_acceptance' engines.id %}" method="POST">
-                                {% csrf_token %}
-                                <input type="hidden" name="item_name" value="{{ service.name }}">
-                                <button type="submit">Добавить</button>
-                            </form>
-                        </div>
+                        <h3 class="engine-title">{{ engine.name }}</h3>
                     </div>
                 {% endfor %}
             {% else %}
@@ -394,7 +387,7 @@
     <!-- Footer -->
     <footer>
         <div class="footer-left">
-            <p class="footer-text">Российское агентство авиационной безопасности</p>
+            <p class="footer-text">Коровин Кирилл 2024</p>
         </div>
         <div class="social-icons">
             <a href="#"><img src="{% static 'RASA/vklogo.svg' %}" alt="VKontakte"></a>

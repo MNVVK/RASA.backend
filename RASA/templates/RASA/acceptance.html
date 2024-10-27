@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceptance</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One:wght@400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One:wght@400&display=swap"
+          rel="stylesheet">
     <style>
         /* Подключение шрифтов */
         @font-face {
@@ -99,6 +100,9 @@
         }
 
         .search-input {
+            display: flex;
+            justify-content: center;
+            align-items: center;
             width: 100%;
             max-width: 500px;
             padding: 15px 20px;
@@ -125,6 +129,7 @@
         .search-button {
             background-color: transparent;
             border: 4px solid #000;
+            height: 24px;
             border-left: none;
             padding: 16px 20px;
             border-radius: 0 30px 30px 0;
@@ -157,7 +162,7 @@
 
         .acceptance-item {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             border-bottom: 1px solid #000;
             padding: 15px;
             text-align: center;
@@ -192,10 +197,19 @@
             margin-left: 20px;
         }
 
+        .engine-name {
+            margin: 80px 50px;
+        }
+
+        .item-content {
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+        }
+
     </style>
 </head>
 <body>
-
 <div class="container">
     <!-- Верхняя панель -->
     <header>
@@ -204,29 +218,25 @@
         </a>
     </header>
 
-    <!-- Секция поиска -->
-    <form method="GET" action="{% url 'acceptance_page' %}" class="search-form">
-        <input type="text" name="q" value="{{ query }}" placeholder="Поиск услуг..." class="search-input">
-        <button type="submit" class="search-button">
-            <img src="{% static 'RASA/search.png' %}" alt="Search">
-        </button>
-    </form>
-
-
     <div class="content">
         <h2>Корзина</h2>
-
+        <div class="search-form">
+            <div class="search-input">
+                Заключительный тест приёмки
+            </div>
+            <div class="search-button"></div>
+        </div>
         {% if acceptance_engines %}
             <div class="acceptance-items">
                 {% for engine in acceptance_engines %}
                     <div class="acceptance-item">
-                        <img src="{% static engine.image_url %}" alt="{{ engine.title }}" class="engine-image">
-                        <h3>{{ engine.title }}</h3>
-                        <form method="POST" action="{% url 'remove_from_acceptance' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="item_id" value="{{ engine.id }}">
-                            <button type="submit" class="remove-button">Удалить</button>
-                        </form>
+                        <img src="{% static engine.image_url %}"
+                             alt="{{ engine.title }}" class="engine-image">
+                        <div class="item-content">
+                            <h3 class="engine-name">{{ engine.title }}</h3>
+                            <h3 class="engine-name">Принят</h3>
+                        </div>
+
                     </div>
                 {% endfor %}
             </div>
@@ -238,14 +248,16 @@
 <!-- Footer -->
 <footer>
     <div class="footer-left">
-        <p class="footer-text">Российское агентство авиационной безопасности</p>
+        <p class="footer-text">Коровин Кирилл 2024</p>
     </div>
     <div class="social-icons">
-        <a href="#"><img src="{% static 'RASA/vklogo.svg' %}" alt="VKontakte"></a>
-        <a href="#"><img src="{% static 'RASA/tglogo.svg' %}" alt="Telegram"></a>
-        <a href="#"><img src="{% static 'RASA/github.svg' %}" alt="GitHub"></a>
+        <a href="#"><img src="{% static 'RASA/vklogo.svg' %}"
+                         alt="VKontakte"></a>
+        <a href="#"><img src="{% static 'RASA/tglogo.svg' %}"
+                         alt="Telegram"></a>
+        <a href="#"><img src="{% static 'RASA/github.svg' %}"
+                         alt="GitHub"></a>
     </div>
 </footer>
-</div>
 </body>
 </html>
