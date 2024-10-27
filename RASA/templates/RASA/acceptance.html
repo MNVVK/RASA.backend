@@ -7,209 +7,11 @@
     <title>Acceptance</title>
     <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One:wght@400&display=swap"
           rel="stylesheet">
-    <style>
-        /* Подключение шрифтов */
-        @font-face {
-            font-family: 'Akira Expanded';
-            src: url('{% static 'fonts/Akira Expanded Demo.otf' %}') format('opentype');
-        }
-
-        @font-face {
-            font-family: 'Agressive';
-            src: url('{% static 'fonts/AGRESSIVE.otf' %}') format('opentype');
-        }
-
-        @font-face {
-            font-family: 'Dela Gothic One';
-            src: url('{% static 'fonts/DelaGothicOne-Regular.ttf' %}') format('truetype');
-        }
-
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            font-family: 'Dela Gothic One', sans-serif;
-            background-color: #f0f0f0;
-        }
-
-        body {
-            font-family: 'Dela Gothic One', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-image: url('{% static "RASA/rectangle.png" %}');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
-            min-height: 100%; /* Занимает всю высоту страницы */
-            display: flex;
-            flex-direction: column; /* Все элементы располагаются по вертикали */
-        }
-
-        .content {
-            flex: 1; /* Контент растягивается на оставшееся пространство */
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        /* Верхняя панель */
-        header {
-            background-color: #F0F0F0;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 2px solid #000;
-            border-top: 2px solid #000;
-        }
-
-        .logo-button {
-            text-decoration: none;
-        }
-
-        .logo {
-            font-family: 'Akira Expanded', sans-serif;
-            font-size: 2rem;
-            color: #000;
-        }
-
-        h1, h2 {
-            text-align: center;
-        }
-
-        .engine-image {
-            width: 6%;
-            height: auto;
-            margin-top: 30px;
-            margin-bottom: 40px;
-        }
-
-        /* Секция поиска */
-        .search-form {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 30px;
-        }
-
-        .search-input {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 500px;
-            padding: 15px 20px;
-            font-size: 18px;
-            border: 4px solid #000;
-            border-right: none;
-            border-radius: 30px 0 0 30px;
-            background-color: transparent;
-            font-family: 'Dela Gothic One', sans-serif;
-            outline: none;
-            color: #000;
-            transition: border-color 0.3s ease;
-        }
-
-        .search-input::placeholder {
-            color: #000;
-            opacity: 0.7;
-        }
-
-        .search-input:focus {
-            border-color: #000;
-        }
-
-        .search-button {
-            background-color: transparent;
-            border: 4px solid #000;
-            height: 24px;
-            border-left: none;
-            padding: 16px 20px;
-            border-radius: 0 30px 30px 0;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .search-button img {
-            width: 24px;
-            height: 24.4px;
-            filter: invert(0%);
-        }
-
-        .search-button:hover {
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-
-        /* Стили для области карточек */
-        .acceptance-items {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            width: 100%;
-            min-height: 200px; /* Минимальная высота контейнера */
-            padding: 20px;
-            box-sizing: border-box; /* Учитываем padding */
-        }
-
-        .acceptance-item {
-            display: flex;
-            flex-direction: row;
-            border-bottom: 1px solid #000;
-            padding: 15px;
-            text-align: center;
-            background-color: transparent;
-        }
-
-        .remove-button {
-            background-color: red;
-            color: white;
-            padding: 5px 10px;
-            border: none;
-            cursor: pointer;
-        }
-
-        /* Footer */
-        footer {
-            background-color: #252525;
-            padding: 40px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-
-        .footer-text {
-            color: #ababab;
-            font-family: 'Agressive', sans-serif;
-            font-size: 1.2rem;
-        }
-
-        .social-icons img {
-            width: 40px;
-            margin-left: 20px;
-        }
-
-        .engine-name {
-            margin: 80px 50px;
-        }
-
-        .item-content {
-            width: 90%;
-            display: flex;
-            justify-content: space-between;
-        }
-
-    </style>
+    <link href="{% static 'styles/acceptance.css' %}"
+          rel="stylesheet">
 </head>
 <body>
+<section>
 <div class="container">
     <!-- Верхняя панель -->
     <header>
@@ -217,47 +19,52 @@
             <h1 class="logo">RASA.</h1>
         </a>
     </header>
-
-    <div class="content">
-        <h2>Корзина</h2>
-        <div class="search-form">
-            <div class="search-input">
-                Заключительный тест приёмки
+    <div class="background">
+    <div class="container">
+        <section class="margin">
+            <h2>Корзина</h2>
+            <div class="search-form">
+                <div class="search-input">
+                    Заключительный тест приёмки
+                </div>
+                <!--<div class="search-button"></div>-->
             </div>
-            <div class="search-button"></div>
-        </div>
-        {% if acceptance_engines %}
-            <div class="acceptance-items">
-                {% for engine in acceptance_engines %}
-                    <div class="acceptance-item">
-                        <img src="{% static engine.image_url %}"
-                             alt="{{ engine.title }}" class="engine-image">
-                        <div class="item-content">
-                            <h3 class="engine-name">{{ engine.title }}</h3>
-                            <h3 class="engine-name">Принят</h3>
+            {% if acceptance_engines %}
+                <div class="acceptance-items">
+                    {% for engine in acceptance_engines %}
+                        <div class="acceptance-item">
+                            <img src="{% static engine.image_url %}"
+                                 alt="{{ engine.title }}" class="engine-image">
+                            <div class="item-content">
+                                <h3 class="engine-name">{{ engine.title }}</h3>
+                                <h3 class="engine-name">Принят</h3>
+                            </div>
+
                         </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>Корзина пуста.</p>
+            {% endif %}
+        </section>
+    </div>
+    </div>
 
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>Корзина пуста.</p>
-        {% endif %}
-    </div>
+    <!-- Footer -->
+    <footer>
+        <div class="footer-left">
+            <p class="footer-text">Коровин Кирилл 2024</p>
+        </div>
+        <div class="social-icons">
+            <a href="#"><img src="{% static 'RASA/vklogo.svg' %}"
+                             alt="VKontakte"></a>
+            <a href="#"><img src="{% static 'RASA/tglogo.svg' %}"
+                             alt="Telegram"></a>
+            <a href="#"><img src="{% static 'RASA/github.svg' %}"
+                             alt="GitHub"></a>
+        </div>
+    </footer>
 </div>
-<!-- Footer -->
-<footer>
-    <div class="footer-left">
-        <p class="footer-text">Коровин Кирилл 2024</p>
-    </div>
-    <div class="social-icons">
-        <a href="#"><img src="{% static 'RASA/vklogo.svg' %}"
-                         alt="VKontakte"></a>
-        <a href="#"><img src="{% static 'RASA/tglogo.svg' %}"
-                         alt="Telegram"></a>
-        <a href="#"><img src="{% static 'RASA/github.svg' %}"
-                         alt="GitHub"></a>
-    </div>
-</footer>
+</section>
 </body>
 </html>
