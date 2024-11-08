@@ -6,10 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="980c43fe-8e01-40a3-9edb-c43fb798b531" name="Changes" comment="test">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RASA/static/fonts/Akira Expanded Demo.otf" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/engines.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/engines.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/homepage.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/homepage.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -117,7 +116,12 @@
       <workItem from="1729977986057" duration="1621000" />
       <workItem from="1730029146616" duration="3622000" />
       <workItem from="1730050337880" duration="2794000" />
-      <workItem from="1730054038902" duration="11882000" />
+      <workItem from="1730054038902" duration="12295000" />
+      <workItem from="1730076379543" duration="520000" />
+      <workItem from="1730111287313" duration="863000" />
+      <workItem from="1730115446555" duration="876000" />
+      <workItem from="1730478197044" duration="3076000" />
+      <workItem from="1730816748148" duration="1310000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <option name="closed" value="true" />

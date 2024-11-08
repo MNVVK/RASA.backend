@@ -35,7 +35,7 @@ def homepage_view(request):
                   {'engines': filtered_engines, 'query': query})
 
 
-# Данные об услугах (их можно хранить в базе данных)
+# Данные об услугах
 engines_data = [
     {
         'id': 1,
@@ -44,7 +44,7 @@ engines_data = [
         'description_en': 'Reliable, robust engine, designed for ease of maintenance. The unique design of the engine allows you to replace parts while the engine is installed on the ship.',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
-        'image_url': 'fj-44.png'
+        'image_url': 'http://localhost:9000/rasa/fj-44.png'
     },
     {
         'id': 2,
@@ -53,7 +53,7 @@ engines_data = [
         'description_en': 'The world-famous and versatile aircraft engine is designed for single-aisle commercial airliners, as well as for various military aircraft.',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
-        'image_url': 'cfm-56.png'
+        'image_url': 'http://localhost:9000/rasa/cfm-56.png'
     },
     {
         'id': 3,
@@ -62,7 +62,7 @@ engines_data = [
         'description_en': 'Exceptionally reliable, the best-selling engine in the world in the history of aviation. To date, more than 33,000 engines have been delivered, which are mainly equipped with single-aisle Boeing commercial aircraft.',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
-        'image_url': 'bng-737.png'
+        'image_url': 'http://localhost:9000/rasa/bng-737.png'
     },
     {
         'id': 4,
@@ -71,7 +71,7 @@ engines_data = [
         'description_en': 'The environmentally friendly engine, designed to solve the problem of decarbonization of air transport, offers aircraft operators improved fuel consumption and CO2 emissions, NOx emissions and noise.',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
-        'image_url': 'leap.png'
+        'image_url': 'http://localhost:9000/rasa/leap.png'
     },
     {
         'id': 5,
@@ -80,7 +80,7 @@ engines_data = [
         'description_en': 'A lightweight and powerful engine designed specifically for private aircraft. It provides high reliability and ease of maintenance, ideal for long-term operation and comfortable quiet flights.',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
-        'image_url': 'ap-1.png'
+        'image_url': 'http://localhost:9000/rasa/ap-1.png'
     },
     {
         'id': 6,
@@ -89,9 +89,37 @@ engines_data = [
         'description_en': 'The high-tech and adaptive aircraft engine, the junior CFM-56 model, is designed to maximize performance and simplify maintenance, the design makes it easy to replace components without removing the engine. It is ideal for a wide range of commercial and military aircraft, providing reliability and efficiency under various operating conditions.',
         'engine_data': 'ГОСТ Р 52745-2007',
         'engine_data_en': 'State Standard 52745-2007',
-        'image_url': 'cfm-57.png'
+        'image_url': 'http://localhost:9000/rasa/cfm-57.png'
     },
 
+]
+
+# Данные об заявках
+acceptance_data = [
+    {
+        'id': 1,
+        'title': 'Заключительный тест приёмки',
+        'status': 'draft'
+    },
+]
+
+# Модель многие-ко-многим
+acceptance_engines = [
+    {
+        'acceptance': 1,
+        'engine': 1,
+        'status': 'Принят'
+    },
+    {
+        'acceptance': 1,
+        'engine': 3,
+        'status': 'Принят',
+    },
+    {
+        'acceptance': 1,
+        'engine': 5,
+        'status': 'Не принят'
+    },
 ]
 
 
@@ -108,13 +136,16 @@ def engines_view(request, id):
 
 # Вьюха для страницы корзины
 def acceptance_page(request, id):
-    acceptance_engines = request.session.get('acceptance', [])
-
-    filtered_engines = [engine for engine in engines_data if
-                        engine['id'] % 2 == 0]
-
+    acceptance = acceptance_data[id - 1]
+    filtred_engines = [
+        {
+            'engine': engines_data[item['engine'] - 1],
+            'status': item['status']
+        } for item in acceptance_engines if item['acceptance'] == id
+    ]
     return render(request, 'RASA/acceptance.html',
-                  {'acceptance_engines': filtered_engines})
+                  {'acceptance': acceptance,
+                   'acceptance_engines': filtred_engines})
 
 
 # Вьюха для добавления товара в корзину (НЕ НУЖНО В 1 ЛАБЕ)
