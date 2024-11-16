@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Engines</title>
+    <link href="{% static 'styles/engines.css' %}"
+          rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <!-- Верхняя панель -->
+    <header>
+        <a href="/" class="logo-button">
+            <h1 class="logo">RASA.</h1>
+        </a>
+    </header>
+    <div class="content">
+        <!-- Основной контент с информацией об услуге -->
+        <section>
+            <div class="margin">
+                <!-- Название услуги с эллипсом -->
+                <div class="engine-title-section">
+                    <span class="ellipse-title"></span>
+                    <h2 class="engine-title">{{ engine.title }}</h2>
+                    <span class="ellipse-title"></span>
+                </div>
+
+                <!-- Контент с изображениями и описанием -->
+                <div class="content-grid">
+                    <!-- Картинка -->
+                    <div class="image-block">
+                        <img src="{{ engine.image_url }}" alt="{{ engine_name }}" class="image-block">
+                    </div>
+                    <!-- Текстовое описание, расположенное под картинкой -->
+                    <div class="text-block">
+                        <p class="description-title">Описание <span class="ellipse-description"></span> Description</p>
+                        <!-- Поля с шрифтом AGRESSIVE -->
+                        <p class="description agressive-font">{{ engine.description }}</p>
+                        <p class="engine-data agressive-font">{{ engine.engine_data }}</p>
+                        <p class="description agressive-font">{{ engine.description_en }}</p>
+                        <p class="engine-data agressive-font">{{ engine.engine_data_en }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-left">
+            <p class="footer-text">Коровин Кирилл 2024</p>
+        </div>
+        <div class="social-icons">
+            <a href="#"><img src="{% static 'RASA/vklogo.svg' %}" alt="VKontakte"></a>
+            <a href="#"><img src="{% static 'RASA/tglogo.svg' %}" alt="Telegram"></a>
+            <a href="#"><img src="{% static 'RASA/github.svg' %}" alt="GitHub"></a>
+        </div>
+    </footer>
+</div>
+</body>
+</html>

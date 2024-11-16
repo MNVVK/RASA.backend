@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=auto, initial-scale=1.0">
+    <title>RASA</title>
+    <link href="{% static 'styles/homepage.css' %}"
+          rel="stylesheet">
+</head>
+<body>
+<section>
+    <!-- Scroll banner -->
+    <div class="scroll-banner">
+        <span class="banner-text">Russian Aviation Safety Agency</span>
+        <div class="banner-dot" aria-hidden="true"></div>
+        <span class="banner-text-ru">российское агентство авиационной безопасности</span>
+        <div class="banner-dot" aria-hidden="true"></div>
+        <span class="banner-text">Russian Aviation Safety Agency</span>
+    </div>
+
+    <!-- Header with logo -->
+    <header>
+        <a href="/" class="logo-button">
+            <h1 class="logo">RASA.</h1>
+        </a>
+    </header>
+
+    <!-- Plane section with image -->
+{    <section class="preview-section"></section>}
+
+    <!-- Services section -->
+    <section class="engines-section">
+        <div class="engines-header">
+            <h2 class="engines-big-title">ДВИГАТЕЛИ В НАЛИЧИИ</h2>
+            <div class="acceptance-container">
+                <a href="{% url 'acceptance_page' 1 %}" class="acceptance-btn"></a>
+            </div>
+        </div>
+        <form method="GET" action="" class="search-form">
+            <input type="text" name="engine_name" value="{{ query }}" placeholder="Поиск двигателя..." class="search-input">
+            <button type="submit" class="search-button">
+                <img src="{% static 'RASA/search.png' %}" alt="Search">
+            </button>
+        </form>
+
+
+        <div class="engines-grid">
+            {% if engines %}
+                {% for engine in engines %}
+                    <div class="engines-card" data-name="{{ engine.name }}">
+                        <!-- Оборачиваем картинку в ссылку -->
+                        <a href="{% url 'engines_page' engine.id %}">
+                            <img src="{{ engine.image_url }}" alt="{{ engine.description }}"
+                                 class="engine-image">
+                        </a>
+                        <h3 class="engine-title">{{ engine.name }}</h3>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Ничего не найдено</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-left">
+            <p class="footer-text">Коровин Кирилл 2024</p>
+        </div>
+        <div class="social-icons">
+            <a href="#"><img src="{% static 'RASA/vklogo.svg' %}" alt="VKontakte"></a>
+            <a href="#"><img src="{% static 'RASA/tglogo.svg' %}" alt="Telegram"></a>
+            <a href="#"><img src="{% static 'RASA/github.svg' %}" alt="GitHub"></a>
+        </div>
+    </footer>
+</section>
+</body>
+</html>
