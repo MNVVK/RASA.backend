@@ -6,9 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="980c43fe-8e01-40a3-9edb-c43fb798b531" name="Changes" comment="test">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/homepage.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/homepage.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RASA/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,7 +66,7 @@
       </envs>
       <option name="SDK_HOME" value="" />
       <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
+      <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="launchJavascriptDebuger" value="false" />
@@ -122,6 +119,9 @@
       <workItem from="1730115446555" duration="876000" />
       <workItem from="1730478197044" duration="3076000" />
       <workItem from="1730816748148" duration="1310000" />
+      <workItem from="1732273558933" duration="83000" />
+      <workItem from="1732273646341" duration="73000" />
+      <workItem from="1732273763756" duration="797000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <option name="closed" value="true" />
