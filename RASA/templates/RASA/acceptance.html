@@ -11,60 +11,71 @@
           rel="stylesheet">
 </head>
 <body>
-<section>
-    <div class="container">
-        <!-- Верхняя панель -->
-        <header>
-            <a href="/" class="logo-button">
-                <h1 class="logo">RASA.</h1>
-            </a>
-        </header>
-        <div class="background">
-            <div class="container">
-                <section class="margin">
-                    <h2>Корзина</h2>
-                    <div class="search-form">
-                        <div class="search-input">
-                            {{ acceptance.title }}
-                        </div>
-                        <!--<div class="search-button"></div>-->
-                    </div>
-                    {% if acceptance_engines %}
-                        <div class="acceptance-items">
-                            {% for engine in acceptance_engines %}
-                                <div class="acceptance-item">
-                                    <img src="{{ engine.engine.image_url }}" alt="{{ engine.engine.title }}"
-                                         class="engine-image">
-                                    <div class="item-content">
-                                        <h3 class="engine-name">{{ engine.engine.title }}</h3>
-                                        <h3 class="engine-name">{{ engine.status }}</h3>
-                                    </div>
+<div class="container">
+    <!-- Верхняя панель -->
+    <header>
+        <a href="{% url 'homepage' %}" class="logo-button">
+            <h1 class="logo">RASA.</h1>
+        </a>
+    </header>
 
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <p>Корзина пуста.</p>
-                    {% endif %}
-                </section>
+    <div class="content">
+        <h2>Корзина</h2>
+        <div class="search-form">
+            <div class="search-input">
+                {{ acceptance.title }}
+            </div>
+            <div class="search-input">
+                {{ acceptance.name }}
             </div>
         </div>
+        {% if acceptance_engines %}
+            <div class="acceptance-items">
+                {% for engine in acceptance_engines %}
+                    <div class="acceptance-item">
+                        <img src="{% static engine.image_url %}"
+                             alt="{{ engine.title }}" class="engine-image">
+                        <div class="item-content">
+                            <h3 class="engine-name">{{ engine.title }}</h3>
+                            <select class="engine-accept" content="">
+                                <option class="engine-accept" value="accepted">
+                                    Принят
+                                </option>
+                                <option class="engine-accept" value="rejected"
+                                        {% if engine.accepted == 'rejected' %}selected{% endif %}>
+                                    Не принят
+                                </option>
+                            </select>
+                        </div>
 
-        <!-- Footer -->
-        <footer>
-            <div class="footer-left">
-                <p class="footer-text">Коровин Кирилл 2024</p>
+                    </div>
+                {% endfor %}
             </div>
-            <div class="social-icons">
-                <a href="#"><img src="{% static 'RASA/vklogo.svg' %}"
-                                 alt="VKontakte"></a>
-                <a href="#"><img src="{% static 'RASA/tglogo.svg' %}"
-                                 alt="Telegram"></a>
-                <a href="#"><img src="{% static 'RASA/github.svg' %}"
-                                 alt="GitHub"></a>
-            </div>
-        </footer>
+        {% else %}
+            <p>Корзина пуста.</p>
+        {% endif %}
+        <form method="post"
+              action="{% url 'delete_acceptance' acceptance.id %}">
+            {% csrf_token %}
+            <button type="submit" class="remove-button">
+                Удалить
+            </button>
+        </form>
     </div>
-</section>
+</div>
+<!-- Footer -->
+<footer>
+    <div class="footer-left">
+        <p class="footer-text">Коровин Кирилл 2024</p>
+    </div>
+    <div class="social-icons">
+        <a href="#"><img src="{% static 'RASA/vklogo.svg' %}"
+                         alt="VKontakte"></a>
+        <a href="#"><img src="{% static 'RASA/tglogo.svg' %}"
+                         alt="Telegram"></a>
+        <a href="#"><img src="{% static 'RASA/github.svg' %}"
+                         alt="GitHub"></a>
+    </div>
+</footer>
 </body>
 </html>

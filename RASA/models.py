@@ -1,29 +1,19 @@
 from django.db import models
-
+from django.contrib.auth.models import User
 
 class Engine(models.Model):
     title = models.CharField(max_length=400)
-    description = models.TextField()
-    image_url = models.CharField(max_length=400)
+    description = models.TextField(null=True, blank=True)
+    engine_data = models.CharField(max_length=400, null=True, blank=True)
+    image_url = models.CharField(max_length=400, null=True, blank=True)
 
     def __str__(self):
         return self.title
 
 
-from django.contrib.auth.models import User
-
-
-class Service(models.Model):
-    name = models.CharField(max_length=255, default="Untitled")
-    description = models.TextField()
-    status = models.CharField(max_length=20, choices=[('active', 'Действует'), ('deleted', 'Удален')], default="active")
-    image_url = models.URLField(null=True, blank=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Application(models.Model):
+class Acceptance(models.Model):
+    title = models.CharField(max_length=400)
+    name = models.CharField(max_length=400)
     STATUS_CHOICES = [
         ('draft', 'Черновик'),
         ('deleted', 'Удалён'),
@@ -33,26 +23,32 @@ class Application(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
-    creator = models.ForeignKey(User, on_delete=models.PROTECT, related_name='applications')
+    creator = models.ForeignKey(User, on_delete=models.CASCADE,
+                                related_name='acceptances')
     formation_date = models.DateTimeField(null=True, blank=True)
     completion_date = models.DateTimeField(null=True, blank=True)
-    moderator = models.ForeignKey(User, on_delete=models.PROTECT, null=True, blank=True,
-                                  related_name='moderated_applications')
-
-    def __str__(self):
-        return f"Application {self.id} - {self.status}"
-
-
-class ApplicationService(models.Model):
-    application = models.ForeignKey(Application, on_delete=models.PROTECT)
-    service = models.ForeignKey(Service, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField(default=1)
-    is_main = models.BooleanField(default=False)
+    moderator = models.ForeignKey(User, on_delete=models.CASCADE, null=True,
+                                  blank=True,
+                                  related_name='moderated_acceptances')
 
     class Meta:
-        unique_together = ['application', 'service']
+        db_table = 'acceptance'
 
     def __str__(self):
-        return f"{self.application} - {self.service}"
+        return self.title
 
-# Используется системная таблица User из Django, дополнительных моделей не требуется
+
+class EngineAcceptance(models.Model):
+    engine = models.ForeignKey(Engine, on_delete=models.CASCADE)
+    acceptance = models.ForeignKey(Acceptance, on_delete=models.CASCADE)
+    ACCEPTED_CHOICES = [
+        ('accepted', 'Принято'),
+        ('rejected', 'Не принято')
+    ]
+    accepted = models.CharField(max_length=20, choices=ACCEPTED_CHOICES)
+
+    class Meta:
+        unique_together = ['engine', 'acceptance']
+
+    def __str__(self):
+        return f"{self.acceptance} - {self.engine}"

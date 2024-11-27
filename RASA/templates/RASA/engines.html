@@ -13,14 +13,14 @@
 <div class="container">
     <!-- Верхняя панель -->
     <header>
-        <a href="/" class="logo-button">
+        <a href="{% url 'homepage' %}" class="logo-button">
             <h1 class="logo">RASA.</h1>
         </a>
     </header>
     <div class="content">
         <!-- Основной контент с информацией об услуге -->
         <section>
-            <div class="margin">
+            <div class="container">
                 <!-- Название услуги с эллипсом -->
                 <div class="engine-title-section">
                     <span class="ellipse-title"></span>
@@ -32,16 +32,13 @@
                 <div class="content-grid">
                     <!-- Картинка -->
                     <div class="image-block">
-                        <img src="{{ engine.image_url }}" alt="{{ engine_name }}" class="image-block">
+                        <img src="{% static engine.image_url %}" alt="{{ engine.title }}" class="image-block">
                     </div>
                     <!-- Текстовое описание, расположенное под картинкой -->
                     <div class="text-block">
                         <p class="description-title">Описание <span class="ellipse-description"></span> Description</p>
-                        <!-- Поля с шрифтом AGRESSIVE -->
                         <p class="description agressive-font">{{ engine.description }}</p>
                         <p class="engine-data agressive-font">{{ engine.engine_data }}</p>
-                        <p class="description agressive-font">{{ engine.description_en }}</p>
-                        <p class="engine-data agressive-font">{{ engine.engine_data_en }}</p>
                     </div>
                 </div>
             </div>

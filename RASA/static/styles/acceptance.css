@@ -21,57 +21,34 @@ html, body {
     display: flex;
     flex-direction: column;
     font-family: 'Dela Gothic One', sans-serif;
+    background-color: #f0f0f0;
 }
 
 body {
+    font-family: 'Dela Gothic One', sans-serif;
     margin: 0;
     padding: 0;
-    font-family: 'Dela Gothic One', sans-serif;
-    background-repeat: no-repeat;
-    background-position: center;
+    background-image: url(../RASA/rectangle.png);
     background-size: cover;
-    min-width: 100%;
-    min-height: 100%;
-    overflow-x: hidden;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    flex-direction: column;
 }
 
 .container {
-    min-height: 100%;
+    min-height: 100%; /* Занимает всю высоту страницы */
     display: flex;
-    flex-direction: column;
-    text-align: center;
-}
-
-.background {
-    flex-direction: column;
-    text-align: center;
-    min-height: 100%;
-    display: flex;
-    background-image: url(../RASA/rectangle.png); /* Фон услуг */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    padding: 30px 60px;
-    overflow: hidden;
+    flex-direction: column; /* Все элементы располагаются по вертикали */
 }
 
 .content {
     flex: 1; /* Контент растягивается на оставшееся пространство */
-    padding: 20px;
+    padding: 40px;
     display: flex;
-    justify-content: start;
+    justify-content: center;
     align-items: center;
     flex-direction: column;
-}
-
-.margin {
-    display: grid;
-    grid-template-columns: 1fr; /* Одна колонка */
-    gap: 20px;
-    width: 100%;
-    min-height: 77vh;
-    margin-top: 0;
-    margin-bottom: auto;
 }
 
 /* Верхняя панель */
@@ -98,10 +75,10 @@ h1, h2 {
 }
 
 .engine-image {
-    width: 130px;
-    height: 130px;
-    margin-top: 20px;
-    margin-bottom: 30px;
+    width: 6%;
+    height: auto;
+    margin-top: 30px;
+    margin-bottom: 40px;
 }
 
 /* Секция поиска */
@@ -116,13 +93,11 @@ h1, h2 {
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    max-width: 500px;
     padding: 15px 20px;
+    margin: 0 20px;
     font-size: 18px;
     border: 4px solid #000;
-    /*border-right: none;*/
-    border-radius: 30px 30px 30px 30px;
+    border-radius: 30px;
     background-color: transparent;
     font-family: 'Dela Gothic One', sans-serif;
     outline: none;
@@ -166,10 +141,10 @@ h1, h2 {
 .acceptance-items {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 20px;
     width: 100%;
     min-height: 200px; /* Минимальная высота контейнера */
-    padding: 60px;
+    padding: 20px;
     box-sizing: border-box; /* Учитываем padding */
 }
 
@@ -177,7 +152,7 @@ h1, h2 {
     display: flex;
     flex-direction: row;
     border-bottom: 1px solid #000;
-    padding: 10px;
+    padding: 15px;
     text-align: center;
     background-color: transparent;
 }
@@ -197,7 +172,6 @@ footer {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
-    flex-shrink: 0; /* Фиксирует футер внизу */
 }
 
 .footer-text {
@@ -213,6 +187,16 @@ footer {
 
 .engine-name {
     margin: 80px 50px;
+}
+
+.engine-accept {
+    font-size: 18px;
+    height: 50px;
+    border: 4px solid;
+    border-radius: 30px;
+    background-color: transparent;
+    font-family: 'Dela Gothic One', sans-serif;
+    outline: none;
 }
 
 .item-content {

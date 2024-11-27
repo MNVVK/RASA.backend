@@ -30,7 +30,6 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
-    'grappelli',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,10 +74,10 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-'USER': 'user',
-        'PASSWORD': 'password',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'rasa',
+        'USER': 'postgres',
+        'PASSWORD': '1234567890',
         'HOST': 'localhost',
         'PORT': '5432',
     }
