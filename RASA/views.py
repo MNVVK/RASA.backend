@@ -1,161 +1,411 @@
-from django.contrib.auth.decorators import login_required
-from django.db import connection
-from django.db.models import Subquery, OuterRef
-from django.shortcuts import redirect, get_object_or_404
-from django.shortcuts import render
+from urllib.parse import urlparse
+
+from django.conf import settings
+from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.timezone import now
+from minio import Minio
+from minio.error import S3Error
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Engine, Acceptance, EngineAcceptance
+from .serializers import (
+    EngineSerializer, AcceptanceSerializer,
+    AcceptanceDetailSerializer, UserSerializer
+)
 
-@login_required
-def homepage_view(request):
-    query = request.GET.get('engine_name', '').strip().lower()  # Получаем поисковый запрос
-
-    # Фильтруем двигатели на основе запроса
-    if query:
-        engines = Engine.objects.filter(title__icontains=query)
-    else:
-        engines = Engine.objects.all()
-
-    # Проверяем, есть ли у текущего пользователя драфтовая приемка
-    draft_acceptance = Acceptance.objects.filter(creator=request.user, status='draft').first()
-
-    # Определяем draft_id и draft_count
-    draft_id = draft_acceptance.id if draft_acceptance else None
-    draft_count = (
-        EngineAcceptance.objects.filter(acceptance=draft_acceptance).count()
-        if draft_acceptance else 0
-    )
-
-    # Возвращаем данные в шаблон
-    return render(request, 'RASA/homepage.html', {
-        'engines': engines,
-        'query': query,
-        'draft_id': draft_id,
-        'draft_count': draft_count,
-    })
+CONST_USER = User.objects.get(pk=1)
 
 
-def engines_view(request, id):
-    engine = get_object_or_404(Engine, id=id)
-    return render(request, 'RASA/engines.html', {'engine': engine})
+class EngineListAPIView(APIView):
+    def get(self, request):
+        # Исключаем удалённые двигатели
+        engines = Engine.objects.exclude(status='deleted')
+
+        if 'engine_title' in request.query_params:
+            engine_title = request.query_params['engine_title']
+            engines = engines.filter(title__icontains=engine_title)
+
+        serializer = EngineSerializer(engines, many=True)
+        user = CONST_USER
+        draft = Acceptance.objects.filter(creator=user, status='draft').first()
+        draft_id = draft.id if draft else None
+        draft_engines_count = EngineAcceptance.objects.filter(
+            acceptance=draft).count() if draft else 0
+
+        response_data = {
+            'draft_id': draft_id,
+            'draft_engines_count': draft_engines_count,
+            'data': serializer.data
+        }
+
+        return Response(response_data)
+
+    def post(self, request):
+        serializer = EngineSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def acceptance_page(request, id):
-    acceptance = get_object_or_404(Acceptance, id=id)
 
-    if acceptance.status == 'deleted':
-        return redirect('homepage')
+class EngineDetailAPIView(APIView):
+    def get(self, request, pk):
+        try:
+            engine = Engine.objects.get(pk=pk)
+            serializer = EngineSerializer(engine)
+            return Response(serializer.data)
+        except Engine.DoesNotExist:
+            return Response({'error': 'Двигатель не найден или удалён'},
+                            status=status.HTTP_404_NOT_FOUND)
 
-    acceptance_engines = Engine.objects.filter(
-        engineacceptance__acceptance=acceptance).annotate(
-        accepted=Subquery(
-            EngineAcceptance.objects.filter(
-                engine=OuterRef('pk'), acceptance=acceptance
-            ).values('accepted')[:1]
-        )
-    )
+    def put(self, request, pk):
+        try:
+            engine = Engine.objects.get(pk=pk)
+            if engine.status == 'deleted':
+                return Response({'error': 'Этот двигатель удалён'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            serializer = EngineSerializer(engine, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Engine.DoesNotExist:
+            return Response({'error': 'Двигатель не найден или удалён'},
+                            status=status.HTTP_404_NOT_FOUND)
 
-    return render(request, 'RASA/acceptance.html', {
-        'acceptance': acceptance,
-        'acceptance_engines': acceptance_engines
-    })
+    def delete(self, request, pk):
+        try:
+            engine = Engine.objects.get(pk=pk)
+            if engine.status == 'deleted':
+                return Response({'error': 'Этот двигатель уже удалён'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            # Удаляем файл из MinIO, если он существует
+            if engine.image_url:
+                try:
+                    parsed_url = urlparse(engine.image_url)
+                    bucket_name = settings.MINIO_BUCKET_NAME
+                    object_name = parsed_url.path.lstrip('/')
+
+                    minio_client = Minio(
+                        settings.MINIO_ENDPOINT,
+                        access_key=settings.MINIO_ACCESS_KEY,
+                        secret_key=settings.MINIO_SECRET_KEY,
+                        secure=settings.MINIO_SECURE,
+                    )
+                    minio_client.remove_object(bucket_name, object_name)
+
+                except S3Error as e:
+                    return Response({'error': f'Ошибка MinIO: {str(e)}'},
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                except Exception as e:
+                    return Response({
+                                        'error': f'Общая ошибка при удалении из MinIO: {str(e)}'},
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            engine.image_url = None
+            engine.status = 'deleted'
+            engine.save()
+
+            return Response({'message': 'Двигатель успешно удалён'})
+        except Engine.DoesNotExist:
+            return Response({'error': 'Двигатель не найден или удалён'},
+                            status=status.HTTP_404_NOT_FOUND)
 
 
-@login_required
-def add_to_acceptance(request, id):
-    if request.method == 'POST':
-        user = request.user
+class EngineAddImageAPIView(APIView):
+    def post(self, request, pk):
+        try:
+            engine = Engine.objects.get(pk=pk)
+            if engine.status == 'deleted':
+                return Response({'error': 'Этот двигатель удалён'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            file = request.FILES.get('image')
+            if not file:
+                return Response({'error': 'Файл изображения не передан'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        # Проверяем, существует ли у пользователя приемка со статусом "draft"
-        acceptance = Acceptance.objects.filter(creator=user, status='draft').first()
-
-        # Если такой приемки нет, создаем новую
-        if not acceptance:
-            acceptance = Acceptance.objects.create(
-                title='Черновик приемки',
-                name='Фамилия Имя Отчество',
-                status='draft',
-                creator=user
+            minio_client = Minio(
+                settings.MINIO_ENDPOINT,
+                access_key=settings.MINIO_ACCESS_KEY,
+                secret_key=settings.MINIO_SECRET_KEY,
+                secure=settings.MINIO_SECURE,
             )
 
-        # Получаем двигатель по ID
-        engine = get_object_or_404(Engine, id=id)
+            bucket_name = settings.MINIO_BUCKET_NAME
 
-        # Проверяем, существует ли связь между приемкой и двигателем
-        engine_acceptance_exists = EngineAcceptance.objects.filter(
-            acceptance=acceptance, engine=engine
-        ).exists()
+            if not minio_client.bucket_exists(bucket_name):
+                minio_client.make_bucket(bucket_name)
 
-        # Если связи нет, создаем ее
-        if not engine_acceptance_exists:
-            EngineAcceptance.objects.create(
-                acceptance=acceptance,
-                engine=engine,
-                accepted='accepted'
+            file_name = f"engines/{engine.id}/{file.name}"
+            minio_client.put_object(
+                bucket_name=bucket_name,
+                object_name=file_name,
+                data=file,
+                length=file.size,
+                content_type=file.content_type
             )
 
-        # Перенаправляем пользователя на страницу приемки
-        return redirect('acceptance_page', id=acceptance.id)
+            image_url = f"{settings.MINIO_BASE_URL}/{bucket_name}/{file_name}"
+            engine.image_url = image_url
+            engine.save()
+
+            return Response(
+                {'message': 'Изображение успешно добавлено', 'url': image_url},
+                status=status.HTTP_200_OK)
+
+        except Engine.DoesNotExist:
+            return Response({'error': 'Двигатель не найден или удалён'},
+                            status=status.HTTP_404_NOT_FOUND)
+        except S3Error as e:
+            return Response({'error': f'Ошибка MinIO: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-def delete_acceptance(request, id):
-    # Проверяем, что запрос выполнен методом POST
-    if request.method == 'POST':
-        # Получаем объект приемки для проверки существования
-        acceptance = get_object_or_404(Acceptance, id=id)
 
-        # Используем курсоры для выполнения SQL-запроса
-        with connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE acceptance SET status = %s WHERE id = %s",
-                ['deleted', id]
+class AddEngineToDraftAPIView(APIView):
+    def post(self, request, pk):
+        try:
+            engine = Engine.objects.get(pk=pk)
+
+            # Проверка на статус удалённости двигателя
+            if engine.status == 'deleted':
+                return Response({'error': 'Этот двигатель удалён и не может быть добавлен в черновик'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            draft, created = Acceptance.objects.get_or_create(
+                creator=CONST_USER, status='draft',
             )
+            if EngineAcceptance.objects.filter(engine=engine, acceptance=draft).exists():
+                return Response({'error': 'Двигатель уже добавлен в черновик'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
-        return redirect('homepage')
+            EngineAcceptance.objects.create(engine=engine, acceptance=draft)
+            return Response({'message': 'Двигатель добавлен в черновик'},
+                            status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response({'error': 'Двигатель не найден'},
+                            status=status.HTTP_404_NOT_FOUND)
 
-# Данные об услугах
-engines_data = [
-    {
-        'id': 1,
-        'title': 'RASA. FJ-44',
-        'description': 'Надежный, крепкий двигатель, сконструированный для легкости обслуживания. Уникальный дизайн двигателя позволяет заменять детали пока двигатель установлен на судне.',
-        'engine_data': 'ГОСТ Р 52745-2007',
-        'image_url': 'http://localhost:9000/rasa/fj-44.png'
-    },
-    {
-        'id': 2,
-        'title': 'RASA. CFM-56',
-        'description': 'Всемирно известный и универсальный аивадвигатель, предназначен для однопроходных коммерческих лайнеров, а также для различных военных самолетов.',
-        'engine_data': 'ГОСТ Р 52745-2007',
-        'image_url': 'http://localhost:9000/rasa/cfm-56.png'
-    },
-    {
-        'id': 3,
-        'title': 'RASA. BNG-737',
-        'description': 'Исключительно надежный, самый продаваемый двигатель в мире за всю историю авиации. На сегодняшний день поставлено более 33 000 двигателей, которыми оснащаются в основном однопроходные коммерческие самолеты Boeing.',
-        'engine_data': 'ГОСТ Р 52745-2007',
-        'image_url': 'http://localhost:9000/rasa/bng-737.png'
-    },
-    {
-        'id': 4,
-        'title': 'RASA. LEAP',
-        'description': 'Экологически чистый двигатель, разработанный для решения задачи декарбонизации воздушного транспорта, предлагает операторам самолетов улучшенные показатели расхода топлива и выбросов CO2, выбросов NOx и шума.',
-        'engine_data': 'ГОСТ Р 52745-2007',
-        'image_url': 'http://localhost:9000/rasa/leap.png'
-    },
-    {
-        'id': 5,
-        'title': 'RASA. AP-1',
-        'description': 'Легкий и мощный двигатель, разработанный специально для частных летательных судов. Обеспечивает высокую надежность и простоту в обслуживании, идеально подходя для долгосрочной эксплуатации и комфортных тихих полетов.',
-        'engine_data': 'ГОСТ Р 52745-2007',
-        'image_url': 'http://localhost:9000/rasa/ap-1.png'
-    },
-    {
-        'id': 6,
-        'title': 'RASA. CFM-57',
-        'description': 'Высокотехнологичный и адаптивный авиадвигатель, младшая модель CFM-56, разработан для обеспечения максимальной производительности и упрощения технического обслуживания, конструкция позволяет легко проводить замену компонентов без снятия двигателя. Идеально подходит для широкого спектра коммерческих и военных летательных аппаратов, обеспечивая надёжность и эффективность при различных условиях эксплуатации.',
-        'engine_data': 'ГОСТ Р 52745-2007',
-        'image_url': 'http://localhost:9000/rasa/cfm-57.png'
-    },
 
-]
+class DraftEngineManagementAPIView(APIView):
+    def delete(self, request, pk):
+        try:
+            user = CONST_USER
+            draft = Acceptance.objects.filter(creator=user,
+                                              status='draft').first()
+
+            if not draft:
+                return Response({'error': 'Черновик не найден'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            # Проверяем, есть ли связь с двигателем
+            engine_acceptance = EngineAcceptance.objects.filter(
+                engine_id=pk, acceptance=draft).first()
+
+            if not engine_acceptance:
+                return Response({'error': 'Двигатель не найден в черновике'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            # Удаляем связь
+            engine_acceptance.delete()
+
+            return Response(
+                {'message': 'Двигатель успешно удалён из черновика'},)
+        except Exception as e:
+            return Response({'error': f'Ошибка: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def put(self, request, pk):
+        try:
+            user = CONST_USER
+            draft = Acceptance.objects.filter(creator=user,
+                                              status='draft').first()
+
+            if not draft:
+                return Response({'error': 'Черновик не найден'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            # Проверяем, есть ли связь с двигателем
+            engine_acceptance = EngineAcceptance.objects.filter(
+                engine_id=pk, acceptance=draft).first()
+
+            if not engine_acceptance:
+                return Response({'error': 'Двигатель не найден в черновике'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            new_status = request.data.get('status')
+            if new_status not in dict(EngineAcceptance.ACCEPTED_CHOICES):
+                return Response(
+                    {'error': 'Недопустимое значение для status'},
+                    status=status.HTTP_400_BAD_REQUEST)
+
+            # Обновляем поле и сохраняем
+            engine_acceptance.accepted = new_status
+            engine_acceptance.save()
+
+            return Response({'message': 'Поле успешно обновлено'},
+                            status=status.HTTP_200_OK)
+        except EngineAcceptance.DoesNotExist:
+            return Response(
+                {'error': 'Связь между двигателем и приёмкой не найдена'},
+                status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'error': f'Ошибка: {str(e)}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AcceptanceListAPIView(APIView):
+    def get(self, request):
+        acceptances = Acceptance.objects.exclude(
+            status__in=['deleted', 'draft'])
+        status_filter = request.query_params.get('status')
+        date_start = request.query_params.get('date_start')
+        date_end = request.query_params.get('date_end')
+
+        if status_filter:
+            acceptances = acceptances.filter(status=status_filter)
+        if date_start and date_end:
+            acceptances = acceptances.filter(
+                formation_date__range=[date_start, date_end])
+
+        serializer = AcceptanceSerializer(acceptances, many=True)
+        return Response(serializer.data)
+
+
+class AcceptanceDetailAPIView(APIView):
+    def get(self, request, pk):
+        try:
+            acceptance = Acceptance.objects.get(pk=pk)
+            serializer = AcceptanceDetailSerializer(acceptance)
+            response_data = serializer.data
+            return Response(response_data)
+        except ObjectDoesNotExist:
+            return Response({'error': 'Приёмка не найдена'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk):
+        try:
+            acceptance = Acceptance.objects.get(pk=pk)
+            if acceptance.status == 'deleted':
+                return Response({'error': 'Приёмка удалена'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            serializer = AcceptanceSerializer(acceptance, data=request.data,
+                                              partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return Response({'error': 'Приёмка не найдена'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, pk):
+        try:
+            acceptance = Acceptance.objects.get(pk=pk)
+            if acceptance.status == 'deleted':
+                return Response({'error': 'Приёмка уже удалена'},
+                                status=status.HTTP_404_NOT_FOUND)
+
+            acceptance.status = 'deleted'
+            acceptance.save()
+            return Response({'message': 'Приёмка успешно удалена'})
+
+        except ObjectDoesNotExist:
+            return Response({'error': 'Приёмка не найдена'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+class AcceptanceFormAPIView(APIView):
+    def post(self, request, pk):
+        try:
+            acceptance = Acceptance.objects.get(pk=pk, status='draft')
+            if not acceptance.title or not acceptance.name:
+                return Response({'error': 'Обязательные поля не заполнены'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            acceptance.status = 'formed'
+            acceptance.formation_date = now()
+            acceptance.save()
+            return Response({'message': 'Приёмка успешно сформирована'},
+                            status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(
+                {
+                    'error': 'Приёмка не найдена или не находится в статусе черновика'},
+                status=status.HTTP_404_NOT_FOUND)
+
+
+class AcceptanceCompleteRejectAPIView(APIView):
+    def post(self, request, pk):
+        try:
+            acceptance = Acceptance.objects.get(pk=pk, status='formed')
+            new_status = request.data.get('status')
+            if new_status not in ['complete', 'reject']:
+                return Response({'error': 'Недопустимый статус'},
+                                status=new_status.HTTP_400_BAD_REQUEST)
+
+            acceptance.completion_date = now()
+            acceptance.moderator = CONST_USER
+
+            if new_status == 'complete':
+                acceptance.status = 'completed'
+            elif new_status == 'reject':
+                acceptance.status = 'rejected'
+
+            acceptance.save()
+            return Response({'message': f'Приёмка {new_status}'},
+                            status=status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response(
+                {
+                    'error': 'Приёмка не найдена или не находится в статусе сформирована'},
+                status=status.HTTP_404_NOT_FOUND)
+
+
+class UserRegistrationAPIView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response({
+                'message': 'Пользователь успешно зарегистрирован',
+                'user': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileUpdateAPIView(APIView):
+    def put(self, request):
+        try:
+            user = CONST_USER
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'message': 'Данные пользователя успешно обновлены',
+                    'user': serializer.data
+                })
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
+        except User.DoesNotExist:
+            return Response({'error': 'Пользователь не найден'},
+                            status=status.HTTP_404_NOT_FOUND)
+
+
+class UserLoginAPIView(APIView):
+    def post(self, request):
+        return Response({'message': 'Аутентификация успешно выполнена'},
+                        status=status.HTTP_200_OK)
+
+
+class UserLogoutAPIView(APIView):
+    def post(self, request):
+        return Response({'message': 'Вы успешно вышли из системы'},
+                        status=status.HTTP_200_OK)

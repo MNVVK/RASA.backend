@@ -6,14 +6,19 @@ class Engine(models.Model):
     description = models.TextField(null=True, blank=True)
     engine_data = models.CharField(max_length=400, null=True, blank=True)
     image_url = models.CharField(max_length=400, null=True, blank=True)
+    STATUS_CHOICES = [
+        ('active', 'Активный'),
+        ('deleted', 'Удалён'),
+    ]
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
 
     def __str__(self):
         return self.title
 
 
 class Acceptance(models.Model):
-    title = models.CharField(max_length=400)
-    name = models.CharField(max_length=400)
+    title = models.CharField(max_length=400, null=True, blank=True)
+    name = models.CharField(max_length=400, null=True, blank=True)
     STATUS_CHOICES = [
         ('draft', 'Черновик'),
         ('deleted', 'Удалён'),
@@ -35,7 +40,7 @@ class Acceptance(models.Model):
         db_table = 'acceptance'
 
     def __str__(self):
-        return self.title
+        return f'Приёмка {self.id}'
 
 
 class EngineAcceptance(models.Model):
@@ -45,10 +50,10 @@ class EngineAcceptance(models.Model):
         ('accepted', 'Принято'),
         ('rejected', 'Не принято')
     ]
-    accepted = models.CharField(max_length=20, choices=ACCEPTED_CHOICES)
+    accepted = models.CharField(max_length=20, choices=ACCEPTED_CHOICES, default='accepted')
 
     class Meta:
         unique_together = ['engine', 'acceptance']
 
     def __str__(self):
-        return f"{self.acceptance} - {self.engine}"
+        return f"{self.acceptance} ({self.engine}): {self.accepted}"
