@@ -79,7 +79,7 @@ header {
     background-repeat: no-repeat;
     padding: 40px;
     display: flex;
-    justify-content: start;
+    justify-content: center;
     align-items: center;
     text-align: center;
 }

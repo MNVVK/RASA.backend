@@ -9,7 +9,7 @@
           rel="stylesheet">
 </head>
 <body>
-<section>
+<section class="rasa">
     <!-- Scroll banner -->
     <div class="scroll-banner">
         <span class="banner-text">Russian Aviation Safety Agency</span>
@@ -27,14 +27,16 @@
     </header>
 
     <!-- Plane section with image -->
-{    <section class="preview-section"></section>}
+    <section class="preview-section"></section>
 
     <!-- Services section -->
     <section class="engines-section">
         <div class="engines-header">
             <h2 class="engines-big-title">ДВИГАТЕЛИ В НАЛИЧИИ</h2>
             <div class="acceptance-container">
-                <a href="{% url 'acceptance_page' 1 %}" class="acceptance-btn"></a>
+                <a href="{% url 'acceptance_page' 1 %}" class="acceptance-btn">
+                    <span class="cart-count">3</span>
+                </a>
             </div>
         </div>
         <form method="GET" action="" class="search-form">

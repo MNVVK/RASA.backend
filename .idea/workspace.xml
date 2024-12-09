@@ -6,6 +6,14 @@
   <component name="ChangeListManager">
     <list default="true" id="980c43fe-8e01-40a3-9edb-c43fb798b531" name="Changes" comment="test">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/static/fonts/Akira Expanded Demo.otf" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/static/styles/acceptance.css" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/static/styles/acceptance.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/static/styles/engines.css" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/static/styles/engines.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/static/styles/homepage.css" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/static/styles/homepage.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/engines.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/engines.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/homepage.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/homepage.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
