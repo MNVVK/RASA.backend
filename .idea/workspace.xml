@@ -5,9 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="980c43fe-8e01-40a3-9edb-c43fb798b531" name="Changes" comment="test">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/djangoProject/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/djangoProject/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/acceptance.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RASA/templates/RASA/engines.html" beforeDir="false" afterPath="$PROJECT_DIR$/RASA/templates/RASA/engines.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -123,7 +123,7 @@
       <workItem from="1730816748148" duration="1310000" />
       <workItem from="1732378017699" duration="2608000" />
       <workItem from="1732715919324" duration="1977000" />
-      <workItem from="1734117294483" duration="2828000" />
+      <workItem from="1734117294483" duration="3274000" />
     </task>
     <task id="LOCAL-00001" summary="test">
       <option name="closed" value="true" />
