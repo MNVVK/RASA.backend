@@ -31,9 +31,9 @@ class AcceptanceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Acceptance
         fields = ['id', 'title', 'name', 'status', 'creator', 'moderator',
-                  'formation_date', 'completion_date', 'total_accepted']
+                  'formation_date', 'completion_date', 'total_accepted', 'qr']
         read_only_fields = ['id', 'status', 'formation_date',
-                            'completion_date', 'total_accepted']
+                            'completion_date', 'total_accepted', 'qr']
 
 
 class AcceptanceDetailSerializer(serializers.ModelSerializer):

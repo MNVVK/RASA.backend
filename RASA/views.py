@@ -1,32 +1,44 @@
+import os
 import uuid
+import mimetypes
 from urllib.parse import urlparse
 
+import boto3
 import redis
 from django.conf import settings
+from django.http import JsonResponse
 from django.contrib.auth import get_user_model, authenticate
 from django.core.exceptions import ObjectDoesNotExist
+from django.middleware.csrf import get_token
+from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
 from drf_yasg.utils import swagger_auto_schema
-from minio import Minio
-from minio.error import S3Error
 from rest_framework import status, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Engine, Acceptance, EngineAcceptance
+from .models import Engine, Acceptance, EngineAcceptance, Attribute, \
+    EngineAttribute
 from .permissions import IsModer
 from .serializers import (
     EngineSerializer, AcceptanceSerializer,
     AcceptanceDetailSerializer, UserSerializer, EngineAcceptanceSerializer,
     AcceptanceStatusSerializer,
 )
+from .services.generate_qr import generate_acceptance_qr
 
 User = get_user_model()
 
-session_storage = redis.StrictRedis(host=settings.REDIS_HOST,
-                                    port=settings.REDIS_PORT)
+#session_storage = redis.StrictRedis(host=settings.REDIS_HOST,
+#                                   port=settings.REDIS_PORT)
+
+# Подключение к Redis через URL
+session_storage = redis.from_url(
+    settings.REDIS_URL,
+    decode_responses=True  # чтобы строки возвращались как str, а не bytes
+)
 
 
 def method_permission_classes(classes):
@@ -44,23 +56,34 @@ def method_permission_classes(classes):
 class EngineListAPIView(APIView):
     def get(self, request):
         # Исключаем удалённые двигатели
-        engines = Engine.objects.exclude(status='deleted')
+        user = request.user
+
+        engines = Engine.objects.all()
 
         if 'engine_title' in request.query_params:
             engine_title = request.query_params['engine_title']
             engines = engines.filter(title__icontains=engine_title)
 
+        if user.is_authenticated:
+            if not user.is_superuser:
+                engines = engines.exclude(status='deleted')
+
+            draft = Acceptance.objects.filter(creator=user,
+                                              status='draft').first()
+            draft_id = draft.id if draft else None
+            draft_engines_count = EngineAcceptance.objects.filter(
+                acceptance=draft).count() if draft else 0
+        else:
+            engines = engines.exclude(status='deleted')
+            draft_id = None
+            draft_engines_count = 0
+
         serializer = EngineSerializer(engines, many=True)
-        user = request.user
-        draft = Acceptance.objects.filter(creator=user, status='draft').first()
-        draft_id = draft.id if draft else None
-        draft_engines_count = EngineAcceptance.objects.filter(
-            acceptance=draft).count() if draft else 0
 
         response_data = {
             'draft_id': draft_id,
             'draft_engines_count': draft_engines_count,
-            'data': serializer.data
+            'engines': serializer.data
         }
 
         return Response(response_data)
@@ -110,32 +133,17 @@ class EngineDetailAPIView(APIView):
                 return Response({'error': 'Этот двигатель уже удалён'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            # Удаляем файл из MinIO, если он существует
+            # Удаляем файл из S3, если был
             if engine.image_url:
                 try:
-                    parsed_url = urlparse(engine.image_url)
-                    bucket_name = settings.MINIO_BUCKET_NAME
-                    object_name = parsed_url.path.lstrip('/')
-
-                    minio_client = Minio(
-                        settings.MINIO_ENDPOINT,
-                        access_key=settings.MINIO_ACCESS_KEY,
-                        secret_key=settings.MINIO_SECRET_KEY,
-                        secure=settings.MINIO_SECURE,
-                    )
-                    minio_client.remove_object(bucket_name, object_name)
-
-                except S3Error as e:
-                    return Response({'error': f'Ошибка MinIO: {str(e)}'},
-                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    s3_delete_by_url(engine.image_url)
                 except Exception as e:
-                    return Response({
-                        'error': f'Общая ошибка при удалении из MinIO: {str(e)}'},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    return Response({'error': f'Ошибка удаления из S3: {e}'},
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             engine.image_url = None
             engine.status = 'deleted'
-            engine.save()
+            engine.save(update_fields=["image_url", "status"])
 
             return Response({'message': 'Двигатель успешно удалён'})
         except Engine.DoesNotExist:
@@ -143,52 +151,99 @@ class EngineDetailAPIView(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
 
+
+# ---- S3 client (Yandex Object Storage) ----
+s3_client = boto3.client(
+    "s3",
+    endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+    aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+    region_name=settings.AWS_S3_REGION_NAME,
+)
+
+def s3_public_url(object_key: str) -> str:
+    """Вернёт публичный URL объекта."""
+    return f"{settings.AWS_PUBLIC_BASE_URL}/{object_key.lstrip('/')}"
+
+def s3_upload_public(file_obj, object_key: str, content_type: str | None = None):
+    """Загрузка в S3 с ACL=public-read."""
+    extra = {"ACL": "public-read"}
+    if content_type:
+        extra["ContentType"] = content_type
+    s3_client.upload_fileobj(
+        Fileobj=file_obj,
+        Bucket=settings.AWS_STORAGE_BUCKET_NAME,
+        Key=object_key,
+        ExtraArgs=extra,
+    )
+
+def s3_delete_by_url(url: str):
+    """Удалит объект по публичному URL."""
+    # ожидаем вид https://storage.yandexcloud.net/<bucket>/<key>
+    parsed = urlparse(url)
+    # путь начинается с /bucket/key...
+    parts = parsed.path.lstrip("/").split("/", 1)
+    if len(parts) != 2:
+        return
+    bucket, key = parts
+    # на всякий случай верифицируем, что bucket совпадает с текущим
+    if bucket != settings.AWS_STORAGE_BUCKET_NAME:
+        # если хочешь — можно бросать исключение/логировать
+        pass
+    s3_client.delete_object(Bucket=bucket, Key=key)
+
+from botocore.exceptions import ClientError, BotoCoreError
+
 class EngineAddImageAPIView(APIView):
     @method_permission_classes((IsModer,))
     def post(self, request, pk):
         try:
             engine = Engine.objects.get(pk=pk)
-
-            file = request.FILES.get('image')
-            if not file:
-                return Response({'error': 'Файл изображения не передан'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            minio_client = Minio(
-                settings.MINIO_ENDPOINT,
-                access_key=settings.MINIO_ACCESS_KEY,
-                secret_key=settings.MINIO_SECRET_KEY,
-                secure=settings.MINIO_SECURE,
-            )
-
-            bucket_name = settings.MINIO_BUCKET_NAME
-
-            if not minio_client.bucket_exists(bucket_name):
-                minio_client.make_bucket(bucket_name)
-
-            file_name = f"engines/{engine.id}/{file.name}"
-            minio_client.put_object(
-                bucket_name=bucket_name,
-                object_name=file_name,
-                data=file,
-                length=file.size,
-                content_type=file.content_type
-            )
-
-            image_url = f"{settings.MINIO_BASE_URL}/{bucket_name}/{file_name}"
-            engine.image_url = image_url
-            engine.save()
-
-            return Response(
-                {'message': 'Изображение успешно добавлено', 'url': image_url},
-                status=status.HTTP_200_OK)
-
         except Engine.DoesNotExist:
             return Response({'error': 'Двигатель не найден или удалён'},
                             status=status.HTTP_404_NOT_FOUND)
-        except S3Error as e:
-            return Response({'error': f'Ошибка MinIO: {str(e)}'},
+
+        file_obj = request.FILES.get('file') or request.FILES.get('image')
+        if not file_obj:
+            return Response({'error': "Файл не передан (ожидается поле 'file' или 'image')"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        orig_name = file_obj.name or "upload.bin"
+        _, ext = os.path.splitext(orig_name)
+        ext = (ext or ".bin").lower()
+
+        content_type = getattr(file_obj, "content_type", None) \
+            or mimetypes.guess_type(orig_name)[0] \
+            or "application/octet-stream"
+
+        object_key = f"engines/{pk}/{uuid.uuid4().hex}{ext}"
+
+        try:
+            s3_upload_public(file_obj, object_key, content_type=content_type)
+        except ClientError as e:
+            # В ответ вернём точный код/сообщение от S3
+            code = e.response.get("Error", {}).get("Code")
+            msg  = e.response.get("Error", {}).get("Message")
+            print("S3 ClientError:", code, msg)  # в консоль Django
+            return Response({'error': f'S3 ClientError: {code}: {msg}'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except BotoCoreError as e:
+            print("S3 BotoCoreError:", repr(e))
+            return Response({'error': f'BotoCoreError: {e}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            print("S3 unknown error:", repr(e))
+            return Response({'error': f'Ошибка загрузки в S3: {e}'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        image_url = s3_public_url(object_key)
+        engine.image_url = image_url
+        engine.save(update_fields=["image_url"])
+
+        return Response({'message': 'Изображение успешно добавлено', 'url': image_url},
+                        status=status.HTTP_200_OK)
+
+
 
 
 class AddEngineToDraftAPIView(APIView):
@@ -210,9 +265,10 @@ class AddEngineToDraftAPIView(APIView):
                 return Response({'error': 'Двигатель уже добавлен в черновик'},
                                 status=status.HTTP_400_BAD_REQUEST)
 
-            EngineAcceptance.objects.create(engine=engine, acceptance=draft)
-            return Response({'message': 'Двигатель добавлен в черновик'},
-                            status=status.HTTP_200_OK)
+            mm = EngineAcceptance.objects.create(engine=engine,
+                                                 acceptance=draft)
+            serializer = EngineAcceptanceSerializer(instance=mm)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response({'error': 'Двигатель не найден'},
                             status=status.HTTP_404_NOT_FOUND)
@@ -275,8 +331,9 @@ class DraftEngineManagementAPIView(APIView):
             engine_acceptance.accepted = new_status
             engine_acceptance.save()
 
-            return Response({'message': 'Поле успешно обновлено'},
-                            status=status.HTTP_200_OK)
+            serializer = EngineAcceptanceSerializer(instance=engine_acceptance)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except EngineAcceptance.DoesNotExist:
             return Response(
                 {'error': 'Связь между двигателем и приёмкой не найдена'},
@@ -304,16 +361,11 @@ class AcceptanceListAPIView(APIView):
 
         if status_filter:
             acceptances = acceptances.filter(status=status_filter)
-        if date_start and date_end:
-            if date_start == date_end:
-                acceptances = acceptances.filter(formation_date=date_start)
-            else:
-                acceptances = acceptances.filter(
-                    formation_date__range=[date_start, date_end + ' 23:59:00'])
-        elif date_start:
-            acceptances = acceptances.filter(formed_at__gte=date_start)
-        elif date_end:
-            acceptances = acceptances.filter(formed_at__lte=date_end)
+        if date_start:
+            acceptances = acceptances.filter(formation_date__gte=date_start)
+        if date_end:
+            acceptances = acceptances.filter(
+                formation_date__lte=date_end + ' 23:59:00')
 
         serializer = AcceptanceSerializer(acceptances, many=True)
         return Response(serializer.data)
@@ -428,6 +480,11 @@ class AcceptanceCompleteRejectAPIView(APIView):
                 acceptance.total_accepted = EngineAcceptance.objects.filter(
                     acceptance=acceptance, accepted='accepted'
                 ).count()
+                qr_code_base64 = generate_acceptance_qr(
+                    acceptance,
+                    EngineAcceptance.objects.filter(acceptance=acceptance)
+                )
+                acceptance.qr = qr_code_base64
             elif new_status == 'reject':
                 acceptance.status = 'rejected'
 
@@ -465,9 +522,11 @@ class UserProfileUpdateAPIView(APIView):
             serializer = UserSerializer(user, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
+                ssid = request.COOKIES.get("session_id")
+                session_storage.set(ssid, serializer.data['username'])
                 return Response({
                     'message': 'Данные пользователя успешно обновлены',
-                    'user': serializer.data
+                    **serializer.data
                 })
             return Response(serializer.errors,
                             status=status.HTTP_400_BAD_REQUEST)
@@ -479,7 +538,6 @@ class UserProfileUpdateAPIView(APIView):
 class UserLoginAPIView(APIView):
     permission_classes = (permissions.AllowAny,)
 
-    @csrf_exempt
     @swagger_auto_schema(request_body=UserSerializer)
     def post(self, request):
         username = request.data['username']
@@ -499,6 +557,10 @@ class UserLoginAPIView(APIView):
             'is_staff': user.is_staff,
         })
         response.set_cookie("session_id", random_key)
+        response.set_cookie(
+            'csrftoken', get_token(request),
+            samesite='None', secure=True
+        )
 
         return response
 
@@ -506,8 +568,116 @@ class UserLoginAPIView(APIView):
 class UserLogoutAPIView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
-    @csrf_exempt
     def post(self, request):
         session_id = request.COOKIES.get('session_id')
         session_storage.delete(session_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AttributeAPIView(APIView):
+    @swagger_auto_schema(method='get')
+    def get(self, request, pk):
+        engine = get_object_or_404(Engine, id=pk)
+
+        all_attributes = Attribute.objects.all()
+
+        response_data = []
+        for attribute in all_attributes:
+            engineattr = EngineAttribute.objects.filter(engine=engine,
+                                                        attribute=attribute).first()
+            response_data.append({
+                'name': attribute.name,
+                'value': engineattr.value if engineattr else None,
+            })
+
+        return Response({"attributes": response_data},
+                        status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(method='post')
+    @method_permission_classes((IsModer,))
+    def post(self, request, pk):
+        engine = get_object_or_404(Engine, id=pk)
+        attribute_name = request.data.get("name")
+        attribute_value = request.data.get("value")
+
+        if not attribute_name or attribute_value is None:
+            return Response(
+                {"error": "Не заполнены обязательные поля."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        attribute, _ = Attribute.objects.get_or_create(name=attribute_name)
+
+        route_attribute, created = EngineAttribute.objects.get_or_create(
+            engine=engine, attribute=attribute,
+            defaults={"value": attribute_value}
+        )
+
+        if not created:
+            route_attribute.value = attribute_value
+            route_attribute.save(update_fields=["value"])
+
+        return Response(
+            {"detail": f"Атрибут '{attribute_name}' успешно создан."},
+            status=status.HTTP_201_CREATED
+        )
+
+    @swagger_auto_schema(method='delete')
+    @method_permission_classes((IsModer,))
+    def delete(self, request, pk):
+        attribute_name = request.data.get("name")
+
+        if not attribute_name:
+            return Response({"error": "Необходимо ввести название атрибута."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        attribute = Attribute.objects.filter(name=attribute_name).first()
+        if not attribute:
+            return Response(
+                {"error": f"Атрибут '{attribute_name}' не существует."},
+                status=status.HTTP_404_NOT_FOUND)
+
+        attribute.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(method='put')
+    @method_permission_classes((IsModer,))
+    def put(self, request, pk):
+        engine = get_object_or_404(Engine, id=pk)
+        attribute_name = request.data.get("name")
+        attribute_value = request.data.get("value")
+
+        if not attribute_name:
+            return Response(
+                {"error": "Введите название атрибута."},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        attribute = Attribute.objects.filter(name=attribute_name).first()
+        if not attribute:
+            return Response(
+                {"error": f"Attribute '{attribute_name}' not found."},
+                status=status.HTTP_404_NOT_FOUND)
+
+        route_attribute = EngineAttribute.objects.filter(engine=engine,
+                                                         attribute=attribute).first()
+
+        if not route_attribute:
+            EngineAttribute.objects.create(engine=engine,
+                                           attribute=attribute,
+                                           value=attribute_value)
+            return Response({"name": attribute_name,
+                             "value": attribute_value,
+                             "status": "created"},
+                            status=status.HTTP_201_CREATED)
+
+        if not attribute_value:
+            route_attribute.delete()
+            return Response({"status": "deleted"},
+                            status=status.HTTP_204_NO_CONTENT)
+
+        route_attribute.value = attribute_value
+        route_attribute.save(update_fields=["value"])
+        return Response({"name": attribute_name,
+                         "value": attribute_value,
+                         "status": "updated"},
+                        status=status.HTTP_200_OK)

@@ -75,6 +75,7 @@ class Acceptance(models.Model):
                                   blank=True,
                                   related_name='moderated_acceptances')
     total_accepted = models.IntegerField(null=True, blank=True)
+    qr = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = 'acceptance'
@@ -98,3 +99,22 @@ class EngineAcceptance(models.Model):
 
     def __str__(self):
         return f"{self.acceptance} ({self.engine}): {self.accepted}"
+
+
+class Attribute(models.Model):
+    name = models.CharField(max_length=400, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
+class EngineAttribute(models.Model):
+    engine = models.ForeignKey(Engine, on_delete=models.CASCADE, related_name='attributes')
+    attribute = models.ForeignKey(Attribute, on_delete=models.CASCADE)
+    value = models.CharField(max_length=400, null=True, blank=True)
+
+    class Meta:
+        unique_together = ['engine', 'attribute']
+
+    def __str__(self):
+        return f"{self.engine}: {self.attribute}"

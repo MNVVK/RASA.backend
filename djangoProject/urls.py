@@ -3,6 +3,8 @@ from django.urls import path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
+from django.http import JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from RASA.views import (
     EngineListAPIView,
@@ -14,8 +16,13 @@ from RASA.views import (
     AcceptanceFormAPIView,
     AcceptanceCompleteRejectAPIView, UserRegistrationAPIView,
     UserProfileUpdateAPIView, UserLoginAPIView, UserLogoutAPIView,
-    DraftEngineManagementAPIView,
+    DraftEngineManagementAPIView, AttributeAPIView,
 )
+
+@ensure_csrf_cookie
+def csrf_view(request):
+    # просто отдаем 200 и кладем csrftoken в cookie
+    return JsonResponse({"detail": "ok"})
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -32,6 +39,8 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    path('api/csrf/', csrf_view, name='csrf'),
+
     # Engine
     path('api/engines/', EngineListAPIView.as_view(), name='engine-list'),
     # GET, POST
@@ -45,6 +54,8 @@ urlpatterns = [
     path('api/engines/<int:pk>/manage-draft/',
          DraftEngineManagementAPIView.as_view(),
          name='engine-manage-draft'),  # PUT, DELETE
+    path('api/engines/<int:pk>/atributes/', AttributeAPIView.as_view(),
+         name='attributes'),
 
     # Acceptance
     path('api/acceptances/', AcceptanceListAPIView.as_view(),
