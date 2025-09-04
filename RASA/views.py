@@ -566,16 +566,16 @@ class UserLoginAPIView(APIView):
         response.set_cookie(
             "session_id",
             random_key,
-            samesite="None",
+            samesite="Lax",
             secure=True,
-            httponly=False,  # можно True, если фронту не нужно читать куку из JS
+            httponly=True,  # можно True, если фронту не нужно читать куку из JS
             path="/",
             max_age=60 * 60 * 24 * 7,  # например, неделя
         )
 
         response.set_cookie(
             "csrftoken", get_token(request),
-            samesite="None",
+            samesite="Lax",
             secure=True,
             path="/",
         )
