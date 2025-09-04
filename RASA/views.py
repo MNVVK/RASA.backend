@@ -562,19 +562,23 @@ class UserLoginAPIView(APIView):
             'username': user.username,
             'is_staff': user.is_staff,
         })
+
         response.set_cookie(
             "session_id",
             random_key,
-            samesite="None",  # обязательно для third-party cookie
-            secure=True,  # требуется вместе с None
-            httponly=True,  # JS не читает, но браузер шлёт
+            samesite="None",
+            secure=True,
+            httponly=False,  # можно True, если фронту не нужно читать куку из JS
             path="/",
-        )
-        response.set_cookie(
-            'csrftoken', get_token(request),
-            samesite='None', secure=True
+            max_age=60 * 60 * 24 * 7,  # например, неделя
         )
 
+        response.set_cookie(
+            "csrftoken", get_token(request),
+            samesite="None",
+            secure=True,
+            path="/",
+        )
         return response
 
 
