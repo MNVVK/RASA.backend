@@ -31,7 +31,7 @@ from .services.generate_qr import generate_acceptance_qr
 
 User = get_user_model()
 
-#session_storage = redis.StrictRedis(host=settings.REDIS_HOST,
+# session_storage = redis.StrictRedis(host=settings.REDIS_HOST,
 #                                   port=settings.REDIS_PORT)
 
 # Подключение к Redis через URL
@@ -151,7 +151,6 @@ class EngineDetailAPIView(APIView):
                             status=status.HTTP_404_NOT_FOUND)
 
 
-
 # ---- S3 client (Yandex Object Storage) ----
 s3_client = boto3.client(
     "s3",
@@ -161,9 +160,11 @@ s3_client = boto3.client(
     region_name=settings.AWS_S3_REGION_NAME,
 )
 
+
 def s3_public_url(object_key: str) -> str:
     """Вернёт публичный URL объекта."""
     return f"{settings.AWS_PUBLIC_BASE_URL}/{object_key.lstrip('/')}"
+
 
 def s3_upload_public(file_obj, object_key: str, content_type: str | None = None):
     """Загрузка в S3 с ACL=public-read."""
@@ -176,6 +177,7 @@ def s3_upload_public(file_obj, object_key: str, content_type: str | None = None)
         Key=object_key,
         ExtraArgs=extra,
     )
+
 
 def s3_delete_by_url(url: str):
     """Удалит объект по публичному URL."""
@@ -192,7 +194,9 @@ def s3_delete_by_url(url: str):
         pass
     s3_client.delete_object(Bucket=bucket, Key=key)
 
+
 from botocore.exceptions import ClientError, BotoCoreError
+
 
 class EngineAddImageAPIView(APIView):
     @method_permission_classes((IsModer,))
@@ -213,8 +217,8 @@ class EngineAddImageAPIView(APIView):
         ext = (ext or ".bin").lower()
 
         content_type = getattr(file_obj, "content_type", None) \
-            or mimetypes.guess_type(orig_name)[0] \
-            or "application/octet-stream"
+                       or mimetypes.guess_type(orig_name)[0] \
+                       or "application/octet-stream"
 
         object_key = f"engines/{pk}/{uuid.uuid4().hex}{ext}"
 
@@ -223,7 +227,7 @@ class EngineAddImageAPIView(APIView):
         except ClientError as e:
             # В ответ вернём точный код/сообщение от S3
             code = e.response.get("Error", {}).get("Code")
-            msg  = e.response.get("Error", {}).get("Message")
+            msg = e.response.get("Error", {}).get("Message")
             print("S3 ClientError:", code, msg)  # в консоль Django
             return Response({'error': f'S3 ClientError: {code}: {msg}'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -244,9 +248,8 @@ class EngineAddImageAPIView(APIView):
                         status=status.HTTP_200_OK)
 
 
-
-
 class AddEngineToDraftAPIView(APIView):
+    @method_permission_classes((IsAuthenticated,))
     def post(self, request, pk):
         try:
             engine = Engine.objects.get(pk=pk)
@@ -275,6 +278,7 @@ class AddEngineToDraftAPIView(APIView):
 
 
 class DraftEngineManagementAPIView(APIView):
+    @method_permission_classes((IsAuthenticated,))
     def delete(self, request, pk):
         try:
             user = request.user
@@ -303,6 +307,7 @@ class DraftEngineManagementAPIView(APIView):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @swagger_auto_schema(request_body=EngineAcceptanceSerializer)
+    @method_permission_classes((IsAuthenticated,))
     def put(self, request, pk):
         try:
             user = request.user
@@ -437,6 +442,7 @@ class AcceptanceDetailAPIView(APIView):
 
 
 class AcceptanceFormAPIView(APIView):
+    @method_permission_classes((IsAuthenticated,))
     def post(self, request, pk):
         try:
             acceptance = Acceptance.objects.get(pk=pk, status='draft')
@@ -556,7 +562,14 @@ class UserLoginAPIView(APIView):
             'username': user.username,
             'is_staff': user.is_staff,
         })
-        response.set_cookie("session_id", random_key)
+        response.set_cookie(
+            "session_id",
+            random_key,
+            samesite="None",  # обязательно для third-party cookie
+            secure=True,  # требуется вместе с None
+            httponly=True,  # JS не читает, но браузер шлёт
+            path="/",
+        )
         response.set_cookie(
             'csrftoken', get_token(request),
             samesite='None', secure=True
