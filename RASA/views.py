@@ -568,7 +568,7 @@ class UserLoginAPIView(APIView):
             random_key,
             samesite="Lax",
             secure=True,
-            httponly=True,  # можно True, если фронту не нужно читать куку из JS
+            httponly=False,  # можно True, если фронту не нужно читать куку из JS
             path="/",
             max_age=60 * 60 * 24 * 7,  # например, неделя
         )
