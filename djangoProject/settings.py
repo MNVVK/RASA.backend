@@ -31,7 +31,6 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
-
 FRONTEND_ORIGIN = os.getenv('FRONTEND_ORIGIN', 'http://localhost:3000')
 BACKEND_ORIGIN = os.getenv('BACKEND_ORIGIN', 'http://localhost:8000')
 
@@ -53,15 +52,14 @@ INSTALLED_APPS = [
 if DEBUG:
     INSTALLED_APPS.append('sslserver')
 
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware', #ON
-    #'RASA.middleware.DisableCSRFMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # ON
+    # 'RASA.middleware.DisableCSRFMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -89,7 +87,12 @@ TEMPLATES = [
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
-    ]
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "RASA.auth.RedisCookieAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ],
 }
 
 WSGI_APPLICATION = 'djangoProject.wsgi.application'
@@ -108,7 +111,6 @@ DATABASES = {
         'OPTIONS': {'sslmode': 'require'},
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -154,7 +156,6 @@ STORAGES = {
     },
 }
 
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
@@ -162,26 +163,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # --- Yandex Object Storage (S3-compatible) ---
 AWS_STORAGE_BUCKET_NAME = os.getenv("YANDEX_BUCKET_NAME", "rasa")
-AWS_S3_ENDPOINT_URL     = os.getenv("YANDEX_ENDPOINT", "https://storage.yandexcloud.net")
-AWS_ACCESS_KEY_ID       = os.getenv("YANDEX_ACCESS_KEY")
-AWS_SECRET_ACCESS_KEY   = os.getenv("YANDEX_SECRET_KEY")
-AWS_S3_REGION_NAME      = os.getenv("YANDEX_REGION", "ru-central1")
+AWS_S3_ENDPOINT_URL = os.getenv("YANDEX_ENDPOINT", "https://storage.yandexcloud.net")
+AWS_ACCESS_KEY_ID = os.getenv("YANDEX_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.getenv("YANDEX_SECRET_KEY")
+AWS_S3_REGION_NAME = os.getenv("YANDEX_REGION", "ru-central1")
 
 # Базовый публичный URL для формирования ссылок на объекты
 AWS_PUBLIC_BASE_URL = f"{AWS_S3_ENDPOINT_URL.rstrip('/')}/{AWS_STORAGE_BUCKET_NAME}"
 
-
-#MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
-#MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
-#MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
-#MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME")
-#MINIO_SECURE = os.getenv("MINIO_SECURE") == "True"
-#MINIO_BASE_URL = f"{'https' if MINIO_SECURE else 'http'}://{MINIO_ENDPOINT}"
+# MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
+# MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
+# MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
+# MINIO_BUCKET_NAME = os.getenv("MINIO_BUCKET_NAME")
+# MINIO_SECURE = os.getenv("MINIO_SECURE") == "True"
+# MINIO_BASE_URL = f"{'https' if MINIO_SECURE else 'http'}://{MINIO_ENDPOINT}"
 # Аккуратно собираем BASE_URL
-#if MINIO_ENDPOINT.startswith("http://") or MINIO_ENDPOINT.startswith("https://"):
+# if MINIO_ENDPOINT.startswith("http://") or MINIO_ENDPOINT.startswith("https://"):
 #    MINIO_BASE_URL = MINIO_ENDPOINT
-#else:
- #   MINIO_BASE_URL = f"{'https' if MINIO_SECURE else 'http'}://{MINIO_ENDPOINT}"
+# else:
+#   MINIO_BASE_URL = f"{'https' if MINIO_SECURE else 'http'}://{MINIO_ENDPOINT}"
 
 
 # --- Redis ---
@@ -190,7 +190,6 @@ REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 REDIS_PASSWORD = os.getenv("REDIS_PASSWORD") or None
 REDIS_USE_SSL = os.getenv("REDIS_USE_SSL", "False").lower() == "true"
-
 
 AUTH_USER_MODEL = 'RASA.CustomUser'
 
@@ -232,6 +231,7 @@ CORS_ALLOW_METHODS = [
 # CSRF доверенные источники (должны включать фронт)
 _csrf = set()
 
+
 def _add_csrf(origin: str):
     try:
         p = urlparse(origin)
@@ -239,6 +239,7 @@ def _add_csrf(origin: str):
             _csrf.add(f"{p.scheme}://{p.netloc}")
     except Exception:
         pass
+
 
 _add_csrf(FRONTEND_ORIGIN)
 _add_csrf(BACKEND_ORIGIN)
